@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="theme-color" content="#f5f2ed" media="(prefers-color-scheme: light)"/>
+  <meta name="theme-color" content="#111010" media="(prefers-color-scheme: dark)"/>
+  <title>Goutham Shibulal — Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#f5f2ed;--fg:#0e0e0e;--fg-m:#555;--fg-f:#aaa;
+      --line:rgba(14,14,14,.13);--nav-h:46px;--left-w:400px;
+      --mono:'DM Mono',monospace;--serif:'DM Serif Display',serif;--sans:'Syne',sans-serif;
+    }
+    body.dark{--bg:#111010;--fg:#eeece8;--fg-m:#888;--fg-f:#3a3a3a;--line:rgba(238,236,232,.1)}
+    html,body{height:100%;overflow:hidden}
+    body{background:var(--bg);color:var(--fg);font-family:var(--sans);cursor:none;transition:background .3s,color .3s}
+
+    /* ─ Custom cursor (desktop) ─ */
+    #cur,#cur-r{pointer-events:none;z-index:9999;position:fixed;border-radius:50%;transform:translate(-50%,-50%)}
+    #cur{width:8px;height:8px;background:var(--fg);transition:width .15s,height .15s}
+    #cur-r{width:28px;height:28px;border:1px solid rgba(128,128,128,.4);z-index:9998;transition:width .25s,height .25s}
+    @media(hover:none){#cur,#cur-r{display:none}body{cursor:auto}}
+
+    /* ─ Music bar ─ */
+    #music-bar{position:fixed;bottom:env(safe-area-inset-bottom,16px);right:16px;z-index:300;background:var(--fg);color:var(--bg);border-radius:40px;padding:8px 14px 8px 10px;display:none;align-items:center;gap:9px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;box-shadow:0 4px 24px rgba(0,0,0,.2);cursor:pointer;max-width:220px}
+    #music-bar.visible{display:flex}
+    .mb-dot{width:6px;height:6px;border-radius:50%;background:var(--bg);flex-shrink:0;animation:pulse 1.4s infinite}
+    .mb-dot.paused{animation:none;opacity:.4}
+    @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.6}}
+    .mb-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}
+    .mb-btn{width:18px;height:18px;border:1px solid rgba(255,255,255,.35);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:8px}
+    #sp-frame{position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none}
+
+    /* ─ Desktop Nav ─ */
+    #nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);display:grid;grid-template-columns:var(--left-w) 5px 1fr;border-bottom:1px solid var(--line);z-index:100;background:var(--bg);transition:background .3s}
+    .nav-l{display:flex;align-items:center;padding:0 16px 0 20px;gap:8px;min-width:0;overflow:hidden}
+    .nav-logo-img{height:22px;width:auto;object-fit:contain;flex-shrink:0}
+    .nav-logo-img.sq{height:24px;width:24px;object-fit:cover;border-radius:3px}
+    .nav-logo-img.tall{height:30px;width:auto}
+    .nav-logo-text{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.07em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .nav-r{display:flex;align-items:center;justify-content:flex-end;padding:0 14px;gap:2px}
+    .nav-r a{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-m);text-decoration:none;padding:5px 9px;border-radius:3px;transition:color .2s,background .2s}
+    .nav-r a:hover,.nav-r a.active{color:var(--fg);background:rgba(128,128,128,.1)}
+    .nav-gap{border-left:1px solid var(--line)}
+    .dm-btn{width:28px;height:28px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;background:transparent;flex-shrink:0;margin-left:4px;transition:background .2s;line-height:1;user-select:none}
+    .dm-btn:hover{background:rgba(128,128,128,.1)}
+
+    /* ─ Desktop shell ─ */
+    #shell{position:fixed;top:var(--nav-h);left:0;right:0;bottom:0;display:flex}
+
+    /* ─ LEFT panel ─ */
+    /* Divider limits: min 320px (~Claude UI ratio), max 52% of window */
+    #left{width:var(--left-w);min-width:320px;max-width:52%;flex-shrink:0;overflow-y:auto;overflow-x:hidden;border-right:1px solid var(--line);scrollbar-width:none}
+    #left::-webkit-scrollbar{display:none}
+    .l-in{padding:32px 28px 80px}
+    .l-head{padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:22px}
+    .l-name{font-family:var(--serif);font-size:clamp(1.5rem,2.4vw,2rem);line-height:1.1;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .l-role{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-m)}
+    .l-bio{font-size:12.5px;line-height:1.85;color:var(--fg-m);padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:22px}
+    .l-bio p{margin-bottom:11px}.l-bio p:last-child{margin-bottom:0}
+    .l-sec{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--fg-f);margin-bottom:14px}
+    .pills{display:flex;flex-wrap:wrap;gap:5px;padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:22px}
+    .pill{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;padding:4px 11px;border:1px solid var(--line);border-radius:100px;color:var(--fg-m);transition:border-color .2s,color .2s}
+    .pill:hover{border-color:var(--fg);color:var(--fg)}
+    .exp-blk{padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:18px}
+    .exp-blk:last-of-type{border-bottom:none;margin-bottom:0}
+    .exp-period{font-family:var(--mono);font-size:9.5px;color:var(--fg-f);margin-bottom:2px}
+    .exp-co{font-weight:700;font-size:13px;margin-bottom:1px}
+    .exp-role{font-family:var(--mono);font-size:10px;color:var(--fg-m);margin-bottom:8px}
+    .exp-ul{list-style:none}
+    .exp-ul li{font-size:11.5px;color:var(--fg-m);line-height:1.75;padding-left:13px;position:relative}
+    .exp-ul li::before{content:'·';position:absolute;left:3px;color:var(--fg-f)}
+    .award-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+    .award-row:last-child{border-bottom:none}
+    .award-n{font-weight:600;font-size:12px}.award-d{font-size:10.5px;color:var(--fg-m);margin-top:1px}
+    .award-y{font-family:var(--mono);font-size:9.5px;color:var(--fg-f);white-space:nowrap;margin-left:12px}
+    .contact-blk{margin-top:28px;padding-top:22px;border-top:1px solid var(--line)}
+    .c-row{display:flex;align-items:center;gap:11px;margin-bottom:12px;text-decoration:none;color:var(--fg);transition:opacity .2s}
+    .c-row:hover{opacity:.5}.c-row:last-child{margin-bottom:0}
+    .c-icon{width:30px;height:30px;border:1px solid var(--line);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .c-icon svg{width:15px;height:15px;fill:none;stroke:var(--fg);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+    .c-txt{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;word-break:break-all}
+
+    /* ─ Divider ─ */
+    #div{width:5px;flex-shrink:0;background:var(--line);cursor:col-resize;position:relative;z-index:50;display:flex;align-items:center;justify-content:center;transition:background .2s}
+    #div:hover,body.drag #div{background:var(--fg)}
+    #div-h{width:3px;height:36px;background:var(--bg);border-radius:99px;opacity:0;transition:opacity .2s}
+    #div:hover #div-h,body.drag #div-h{opacity:1}
+
+    /* ─ RIGHT panel ─ */
+    #right{flex:1;min-width:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+    #right::-webkit-scrollbar{width:3px}
+    #right::-webkit-scrollbar-thumb{background:var(--line)}
+    .cat-tabs{display:flex;padding:0 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:10;overflow-x:auto;scrollbar-width:none;transition:background .3s}
+    .cat-tabs::-webkit-scrollbar{display:none}
+    .cat-tab{display:flex;align-items:center;gap:6px;padding:11px 14px 10px;font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--fg-m);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;user-select:none}
+    .cat-tab:hover{color:var(--fg)}.cat-tab.active{color:var(--fg);border-bottom-color:var(--fg)}
+    .f-icon{width:14px;height:11px;position:relative;flex-shrink:0}
+    .f-icon::before{content:'';position:absolute;left:0;top:3px;width:14px;height:8px;border:1.4px solid currentColor;border-radius:0 2px 2px 2px}
+    .f-icon::after{content:'';position:absolute;left:0;top:0;width:7px;height:4px;border:1.4px solid currentColor;border-radius:2px 2px 0 0;border-bottom:none}
+    .f-icon.open::before{background:rgba(128,128,128,.1)}
+    .cat-panel{display:none}.cat-panel.active{display:block}
+
+    /* ─ Project row (desktop) ─ */
+    .proj{border-bottom:1px solid var(--line);padding:20px 20px 24px}
+    .proj:last-child{border-bottom:none}
+    .proj-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px;gap:12px}
+    .proj-l{flex:1;min-width:0}
+    .proj-client{font-family:var(--sans);font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:2px}
+    .proj-svc{font-family:var(--mono);font-size:10px;color:var(--fg-m);line-height:1.55;white-space:pre-line}
+    .proj-arrow{width:26px;height:26px;border:1px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:background .2s,border-color .2s;margin-top:2px}
+    .proj-arrow:hover{background:var(--fg);border-color:var(--fg)}.proj-arrow:hover svg{stroke:var(--bg)}
+    .proj-arrow svg{width:10px;height:10px;fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
+    .proj-desc{font-size:12px;line-height:1.8;color:var(--fg-m);margin-bottom:14px}
+
+    /* Media grids */
+    .mg{display:grid;gap:3px}
+    .mg-2{grid-template-columns:1fr 1fr}.mg-3{grid-template-columns:1fr 1fr 1fr}
+    .mg-1-2{grid-template-columns:1fr 2fr}.mg-2-1{grid-template-columns:2fr 1fr}
+    .mg-sub{display:grid;gap:3px}
+    .mi{position:relative;overflow:hidden;border-radius:3px;width:100%;background:#1a1a1a}
+    .mi.r43{aspect-ratio:4/3}.mi.r34{aspect-ratio:3/4}.mi.r11{aspect-ratio:1}.mi.r169{aspect-ratio:16/7;grid-column:1/-1}
+    .mi img,.mi video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .45s ease}
+    .proj:hover .mi img,.proj:hover .mi video{transform:scale(1.03)}
+    .mi-ph{position:absolute;inset:0;transition:transform .45s ease}
+    .proj:hover .mi-ph{transform:scale(1.03)}
+    .mi-lbl{position:absolute;bottom:7px;left:9px;font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:rgba(255,255,255,.35);text-transform:uppercase;z-index:2}
+    .d1{background:linear-gradient(135deg,#2c1810,#4a2820)}.d2{background:linear-gradient(135deg,#1a1a1a,#2d2d2d)}
+    .d3{background:linear-gradient(160deg,#1c2a1a,#2a3c28)}.d4{background:linear-gradient(135deg,#18182a,#2a2a40)}
+    .d5{background:linear-gradient(135deg,#2a1c10,#3c2a18)}.d6{background:linear-gradient(160deg,#0e1a2a,#1a2a3c)}
+    .d7{background:linear-gradient(135deg,#1a0e1a,#2c1a2c)}.d8{background:linear-gradient(135deg,#0a1a14,#1a3028)}
+    .d9{background:linear-gradient(135deg,#1a1410,#2c2018)}
+
+    /* ─ Project Expanded Modal (desktop) ─ */
+    #proj-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(4px)}
+    #proj-modal-bg.open{opacity:1;pointer-events:all}
+    #proj-modal{position:fixed;top:0;right:0;bottom:0;width:min(1100px,90vw);background:var(--bg);z-index:501;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--line) transparent;border-left:1px solid var(--line)}
+    #proj-modal.open{transform:translateX(0)}
+    #proj-modal::-webkit-scrollbar{width:3px}
+    #proj-modal::-webkit-scrollbar-thumb{background:var(--line)}
+    .pm-head{position:sticky;top:0;background:var(--bg);z-index:5;padding:16px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;transition:background .3s}
+    .pm-client{font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase}
+    .pm-close{width:30px;height:30px;border:1px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:background .2s,border-color .2s;flex-shrink:0}
+    .pm-close:hover{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+    .pm-body{padding:24px}
+    .pm-svc{font-family:var(--mono);font-size:10px;color:var(--fg-m);line-height:1.6;white-space:pre-line;margin-bottom:16px}
+    .pm-desc{font-size:13px;line-height:1.85;color:var(--fg-m);margin-bottom:20px}
+    .pm-iframe-wrap{width:100%;border-radius:6px;overflow:hidden;margin-bottom:20px;border:1px solid var(--line)}
+    .pm-iframe-wrap iframe{width:100%;height:520px;border:none;display:block}
+    .pm-iframe-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-f);margin-bottom:8px}
+    /* Smart embed card — shown when iframe is blocked (e.g. Figma) */
+    .embed-card{width:100%;border-radius:8px;overflow:hidden;border:1px solid var(--line);margin-bottom:20px;background:var(--card);display:flex;flex-direction:column}
+    .embed-card-thumb{width:100%;aspect-ratio:9/16;max-height:420px;object-fit:cover;object-position:top;display:block}
+    .embed-card-thumb-wide{aspect-ratio:16/9;max-height:300px}
+    .embed-card-foot{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);gap:10px}
+    .embed-card-info{font-family:var(--mono);font-size:10px;color:var(--fg-m);line-height:1.5}
+    .embed-card-info b{color:var(--fg);display:block;margin-bottom:2px}
+    .embed-open-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:6px;background:var(--acc);color:#000;font-family:var(--mono);font-size:10px;font-weight:600;text-decoration:none;letter-spacing:.06em;white-space:nowrap;transition:opacity .15s}
+    .embed-open-btn:hover{opacity:.85}
+
+    /* ─ TABLET (601–900px) ─ */
+    @media(max-width:900px) and (min-width:601px){
+      #left{width:280px;min-width:260px}
+      .l-in{padding:24px 18px 60px}
+      .l-name{font-size:1.45rem}
+    }
+
+    /* ─ MOBILE ≤600px — Editorial layout matching Beatrice Fiumi reference ─ */
+    #mob{display:none;flex-direction:column;height:100%;overflow:hidden}
+
+    /* Mobile top nav */
+    .mob-nav{height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--line);flex-shrink:0;background:var(--bg);transition:background .3s}
+    .mob-logo{display:flex;align-items:center;gap:8px;min-width:0;flex:1;overflow:hidden}
+    .mob-logo img{height:20px;width:auto;object-fit:contain;flex-shrink:0}
+    .mob-logo-text{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.07em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg)}
+    .mob-nav-r{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+    /* Mobile scrollable body */
+    .mob-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+
+    /* Hero block — Editorial, matches reference exactly */
+    /* Hero: name 1 line, role 1 line, full-width bio */
+    .mob-hero{padding:24px 18px 24px;border-bottom:1px solid var(--line)}
+    .mob-name{font-family:var(--serif);font-size:clamp(2rem,9.5vw,3.2rem);line-height:1.0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px}
+    .mob-role{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-m);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+    .mob-bio{font-size:13px;line-height:1.85;color:var(--fg-m)}
+    .mob-bio p{margin-bottom:12px}.mob-bio p:last-child{margin-bottom:0}
+
+    /* Skills — shown after projects, before contact */
+    .mob-skills{padding:18px 18px 14px;border-bottom:1px solid var(--line)}
+    .mob-skills-label{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--fg-f);margin-bottom:10px}
+    .mob-pills-wrap{display:flex;flex-wrap:wrap;gap:5px}
+    .mob-pill{font-family:var(--mono);font-size:9px;padding:4px 10px;border:1px solid var(--line);border-radius:100px;color:var(--fg-m)}
+
+    /* Contact footer */
+    .mob-contact-footer{padding:20px 18px 32px;border-top:1px solid var(--line)}
+    .mob-contact-footer-label{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--fg-f);margin-bottom:14px}
+    .mob-cf-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);text-decoration:none;color:var(--fg);font-family:var(--mono);font-size:10.5px}
+    .mob-cf-row:last-child{border-bottom:none}
+    .mob-cf-icon{width:28px;height:28px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px}
+
+    /* Mobile section header — like reference "Projects / Selected works" */
+    .mob-section-hdr{padding:20px 18px 16px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;justify-content:space-between}
+    .mob-section-title{font-family:var(--serif);font-size:2.2rem;line-height:1}
+    .mob-section-sub{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-m);text-align:right;line-height:1.5}
+
+    /* Mobile category tabs */
+    .mob-cat-tabs{display:flex;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line);padding:0 18px;background:var(--bg);position:sticky;top:0;z-index:10;transition:background .3s}
+    .mob-cat-tabs::-webkit-scrollbar{display:none}
+    .mob-cat-tab{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;padding:10px 14px 9px;white-space:nowrap;color:var(--fg-m);border-bottom:2px solid transparent;cursor:pointer;transition:color .2s,border-color .2s;user-select:none}
+    .mob-cat-tab.active{color:var(--fg);border-bottom-color:var(--fg)}
+
+    /* Mobile project rows — editorial style like reference */
+    .mob-proj{padding:18px 18px 0;border-bottom:1px solid var(--line)}
+    .mob-proj-top{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start;margin-bottom:6px}
+    .mob-proj-client{font-family:var(--sans);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.05em}
+    .mob-proj-svc{font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--fg);line-height:1.45;margin-bottom:8px;white-space:pre-line}
+    .mob-proj-desc{font-size:12px;color:var(--fg-m);line-height:1.75;margin-bottom:14px}
+    /* Project expand button on mobile */
+    .mob-proj-expand{width:28px;height:28px;border:1px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .2s}
+    .mob-proj-expand:active{background:var(--fg)}
+    .mob-proj-expand svg{width:10px;height:10px;fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    /* Mobile media strip — horizontal scroll */
+    .mob-media-strip{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none;padding-bottom:16px;margin:0 -18px;padding-left:18px;padding-right:18px}
+    .mob-media-strip::-webkit-scrollbar{display:none}
+    .mob-mi{flex-shrink:0;height:200px;border-radius:4px;overflow:hidden;background:#1a1a1a;position:relative}
+    .mob-mi.w-normal{width:240px}.mob-mi.w-tall{width:150px}.mob-mi.w-wide{width:320px}.mob-mi.w-square{width:200px}
+    .mob-mi img,.mob-mi video{width:100%;height:100%;object-fit:cover;display:block}
+    .mob-mi-ph{width:100%;height:100%}
+
+    /* ─ Mobile bottom sheet (project expanded) ─ */
+    #sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(3px)}
+    #sheet-bg.open{opacity:1;pointer-events:all}
+    #sheet{position:fixed;left:0;right:0;bottom:0;height:94dvh;background:var(--bg);z-index:601;border-radius:18px 18px 0 0;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);overflow:hidden;display:flex;flex-direction:column;transition:background .3s,transform .35s cubic-bezier(.4,0,.2,1)}
+    #sheet.open{transform:translateY(0)}
+    .sheet-handle{width:40px;height:4px;background:var(--line);border-radius:2px;margin:10px auto 0;flex-shrink:0}
+    .sheet-head{padding:14px 18px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+    .sheet-client{font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase}
+    .sheet-close{width:30px;height:30px;border:1px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:background .2s}
+    .sheet-close:active{background:var(--fg);color:var(--bg)}
+    .sheet-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 18px 40px;-webkit-overflow-scrolling:touch}
+    .sheet-svc{font-family:var(--mono);font-size:10px;color:var(--fg-m);line-height:1.6;white-space:pre-line;margin-bottom:14px}
+    .sheet-desc{font-size:13px;line-height:1.85;color:var(--fg-m);margin-bottom:20px}
+    .sheet-iframe-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-f);margin-bottom:8px}
+    .sheet-iframe-wrap{width:100%;border-radius:8px;overflow:hidden;border:1px solid var(--line);margin-bottom:20px}
+    .sheet-iframe-wrap iframe{width:100%;height:480px;border:none;display:block}
+    /* Sheet media grid */
+    .sheet-mg{display:grid;gap:3px}
+    .sheet-mg-2{grid-template-columns:1fr 1fr}
+    .sheet-mg-3{grid-template-columns:1fr 1fr 1fr}
+    .sheet-mi{position:relative;overflow:hidden;border-radius:3px;background:#1a1a1a}
+    .sheet-mi.r43{aspect-ratio:4/3}.sheet-mi.r34{aspect-ratio:3/4}.sheet-mi.r11{aspect-ratio:1}.sheet-mi.r169{aspect-ratio:16/9;grid-column:1/-1}
+    .sheet-mi img,.sheet-mi video{width:100%;height:100%;object-fit:cover}
+    .sheet-mi-ph{width:100%;height:100%;position:absolute;inset:0}
+
+    /* Experience + awards on mobile (collapsible) */
+    .mob-exp-section{padding:18px 18px 0;border-bottom:1px solid var(--line)}
+    .mob-exp-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding-bottom:14px}
+    .mob-exp-toggle-l{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--fg-f)}
+    .mob-exp-toggle-ic{font-size:12px;color:var(--fg-m);transition:transform .2s}
+    .mob-exp-toggle-ic.open{transform:rotate(180deg)}
+    .mob-exp-body{display:none;padding-bottom:16px}
+    .mob-exp-body.open{display:block}
+
+    @media(max-width:600px){
+      #shell,#nav{display:none}
+      #mob{display:flex}
+      #music-bar{bottom:calc(env(safe-area-inset-bottom,0px) + 10px);right:10px;max-width:180px}
+    }
+  </style>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+</head>
+<body>
+<div id="cur"></div><div id="cur-r"></div>
+<div id="music-bar"><div class="mb-dot" id="mb-dot"></div><span class="mb-label" id="mb-label">Now Playing</span><div class="mb-btn" id="mb-btn">❚❚</div></div>
+<iframe id="sp-frame" allow="autoplay"></iframe>
+
+<!-- ═══ DESKTOP NAV ═══ -->
+<div id="nav">
+  <div class="nav-l" id="nav-logo"></div>
+  <div class="nav-gap"></div>
+  <div class="nav-r">
+    <a href="#" class="active">Feed</a>
+    <a href="overview.html">Overview</a>
+    <a href="#" onclick="scrollToContact(event)">Contact</a>
+    <div class="dm-btn" id="dm-btn" onclick="toggleDark()">☀</div>
+  </div>
+</div>
+
+<!-- ═══ DESKTOP SPLIT SHELL ═══ -->
+<div id="shell">
+  <div id="left">
+    <div class="l-in">
+      <div class="l-head">
+        <div class="l-name" id="l-name"></div>
+        <div class="l-role" id="l-role"></div>
+      </div>
+      <div class="l-bio" id="l-bio"></div>
+      <div class="l-sec">Disciplines</div>
+      <div class="pills" id="l-pills"></div>
+      <div class="l-sec">Experience</div>
+      <div id="l-exp"></div>
+      <div class="l-sec" style="margin-top:4px">Recognition</div>
+      <div id="l-awards"></div>
+      <div class="contact-blk" id="l-contact">
+        <div class="l-sec">Contact</div>
+        <div id="contact-rows"></div>
+      </div>
+    </div>
+  </div>
+  <div id="div"><div id="div-h"></div></div>
+  <div id="right">
+    <div class="cat-tabs" id="cat-tabs"></div>
+    <div id="cat-panels"></div>
+  </div>
+</div>
+
+<!-- ═══ DESKTOP PROJECT MODAL (slide-in from right) ═══ -->
+<div id="proj-modal-bg" onclick="closeModal()"></div>
+<div id="proj-modal">
+  <div class="pm-head">
+    <div>
+      <div class="pm-client" id="pm-client"></div>
+      <div style="font-family:var(--mono);font-size:9.5px;color:var(--fg-m);margin-top:3px" id="pm-cat-label"></div>
+    </div>
+    <div class="pm-close" onclick="closeModal()">✕</div>
+  </div>
+  <div class="pm-body">
+    <div class="pm-svc" id="pm-svc"></div>
+    <div class="pm-desc" id="pm-desc"></div>
+    <div id="pm-iframe-section" style="display:none"></div>
+    <div id="pm-media"></div>
+  </div>
+</div>
+
+<!-- ═══ MOBILE ═══ -->
+<div id="mob">
+  <div class="mob-nav">
+    <div class="mob-logo" id="mob-logo"></div>
+    <div class="mob-nav-r">
+      <div class="dm-btn" id="dm-btn-mob" onclick="toggleDark()">☀</div>
+    </div>
+  </div>
+  <div class="mob-scroll" id="mob-scroll">
+    <!-- Hero -->
+    <div class="mob-hero" id="mob-hero"></div>
+    <!-- Skills pills -->
+    <div class="mob-skills" id="mob-skills"></div>
+    <!-- Projects section -->
+    <div class="mob-section-hdr">
+      <div class="mob-section-title">Projects</div>
+      <div class="mob-section-sub">Selected<br>works</div>
+    </div>
+    <!-- Category tabs -->
+    <div class="mob-cat-tabs" id="mob-cat-tabs"></div>
+    <!-- Project list -->
+    <div id="mob-projects"></div>
+    <!-- Experience + Awards (collapsible) -->
+    <div id="mob-extra"></div>
+    <!-- Disciplines (Skills) -->
+    <div class="mob-skills" id="mob-skills"></div>
+    <!-- Contact footer -->
+    <div class="mob-contact-footer" id="mob-contact-footer"></div>
+  </div>
+</div>
+
+<!-- ═══ MOBILE BOTTOM SHEET ═══ -->
+<div id="sheet-bg" onclick="closeSheet()"></div>
+<div id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <div>
+      <div class="sheet-client" id="sh-client"></div>
+      <div style="font-family:var(--mono);font-size:9.5px;color:var(--fg-m);margin-top:2px" id="sh-cat"></div>
+    </div>
+    <div class="sheet-close" onclick="closeSheet()">✕</div>
+  </div>
+  <div class="sheet-body" id="sh-body"></div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────
+const GS_KEY='gs_portfolio_data';
+const GS_DEF={meta:{name:"Goutham Shibulal",role:"UI/UX Designer & Brand Strategist",location:"Florence, Italy",email:"gouthamslal.work@gmail.com",phone:"+39 328 816 4421",linkedin:"https://linkedin.com/in/gouthamslal",bio:["Goutham Shibulal is a UI/UX Designer and Brand Strategist based in Florence, Italy. His practice spans brand strategy, identity design, and digital product experience.","Drawn to photography and film direction as a child, this background informs a compositional eye and deep understanding of visual narrative — applied across SaaS products, brand systems, and digital campaigns.","His work is shaped by Gestalt principles and the conviction that brands must be desired before they are bought."],spotifyUrl:"",spotifyAutoplay:true,logoType:"text",logoUrl:"",logoRatio:"wide"},skills:["Brand Identity","UI/UX Design","Brand Strategy","Visual Systems","Art Direction","Figma","Design Systems","Webflow","Motion Design","Photography","Gestalt Theory"],experience:[{id:"e1",period:"Sep 2022 — 2024",company:"Pine Labs",role:"Product Marketing Lead",bullets:["Developed main screens for apps & white-labelled UI sections","Crafted design proposals and secured stakeholder approvals","Managed product campaign decks and marketing collateral","Led complete overhaul of company website","Brand consistency advocacy across the organisation"]},{id:"e2",period:"Oct 2020 — 2022",company:"Freelance",role:"Brand Strategist & UI/UX Designer",bullets:["End-to-end brand identity systems for startups globally","SaaS product interfaces applying Gestalt-driven UX","Design systems aligned to brand DNA","Direct collaboration with founders on visual strategy"]}],awards:[{id:"a1",name:"Awwwards",desc:"Honorable Mention",year:"2024"},{id:"a2",name:"Orpetron WDA",desc:"Web Design Award",year:"2024"},{id:"a3",name:"Bouygues Telecom",desc:"UX Sprint — Jury's Choice",year:"2023"},{id:"a4",name:"330ML Brief",desc:"Public's Choice — 2nd Place",year:"2023"}],categories:[{id:"branding",label:"Branding"},{id:"digital",label:"Digital & UX"},{id:"campaigns",label:"Campaigns"},{id:"strategy",label:"Strategy"}],projects:[{id:"p1",category:"branding",client:"Pine Labs",order:0,services:"Product Marketing / Brand System\nVisual Identity · Collateral Design",desc:"Led the complete rebrand of Pine Labs' product marketing ecosystem — from the main website overhaul to tailor-made app screens and white-labelled UI components.",media:[{id:"m1",type:"placeholder",label:"Brand System",bg:"d1",layout:"tall"},{id:"m2",type:"placeholder",label:"Identity Mark",bg:"d2",layout:"normal"},{id:"m3",type:"placeholder",label:"Campaign Deck",bg:"d5",layout:"normal"}],gridLayout:"1-2",iframeUrl:""},{id:"p2",category:"branding",client:"Hospitality Brand",order:1,services:"Re-Branding Strategy\nCreative Concept / Identity Design",desc:"Complete brand identity for a hospitality startup — from naming strategy and visual identity through to digital touchpoints.",media:[{id:"m5",type:"placeholder",label:"Logo Mark",bg:"d3",layout:"square"},{id:"m6",type:"placeholder",label:"Brand Grid",bg:"d9",layout:"square"}],gridLayout:"2col",iframeUrl:""},{id:"p3",category:"digital",client:"Fintech SaaS Platform",order:0,services:"UI/UX Design / Design System\nFigma · Prototyping · Handoff",desc:"Comprehensive SaaS platform interface applying Gestalt principles throughout.",media:[{id:"m8",type:"placeholder",label:"Dashboard",bg:"d6",layout:"normal"},{id:"m10",type:"placeholder",label:"Mobile App",bg:"d8",layout:"tall"}],gridLayout:"2-1",iframeUrl:""},{id:"p4",category:"campaigns",client:"Zomato — Digital Campaign",order:0,services:"Creative Direction / Art Direction\nSocial · In-App · OOH",desc:"Art directed a digital campaign for Zomato translating their brand personality into visual assets.",media:[{id:"m11",type:"placeholder",label:"Hero Visual",bg:"d1",layout:"normal"},{id:"m12",type:"placeholder",label:"Social Asset",bg:"d5",layout:"normal"}],gridLayout:"2col",iframeUrl:""},{id:"p5",category:"strategy",client:"Bouygues Telecom",order:0,services:"UX Strategy / Service Design\nSprint · Jury's Choice Award",desc:"UX Sprint improving the customer journey for Bouygues Telecom's smartphone offer range.",media:[{id:"m14",type:"placeholder",label:"Journey Map",bg:"d6",layout:"normal"}],gridLayout:"2col",iframeUrl:""}]};
+function gsLoad(){try{const r=localStorage.getItem(GS_KEY);return r?JSON.parse(r):JSON.parse(JSON.stringify(GS_DEF))}catch(e){return JSON.parse(JSON.stringify(GS_DEF))}}
+
+// ── Dark mode ──────────────────────────────────
+const DM_KEY='gs_dm';
+function initDark(){const sv=localStorage.getItem(DM_KEY);const sys=matchMedia('(prefers-color-scheme:dark)').matches;applyDark(sv!==null?sv==='1':sys,false)}
+function applyDark(on,save=true){
+  document.body.classList.toggle('dark',on);
+  const ic=on?'☽':'☀';
+  ['dm-btn','dm-btn-mob'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=ic});
+  document.querySelector('meta[name="theme-color"][media*="light"]')?.setAttribute('content',on?'#111010':'#f5f2ed');
+  if(save)localStorage.setItem(DM_KEY,on?'1':'0');
+}
+function toggleDark(){applyDark(!document.body.classList.contains('dark'))}
+matchMedia('(prefers-color-scheme:dark)').addEventListener('change',e=>{if(!localStorage.getItem(DM_KEY))applyDark(e.matches,false)});
+
+// ── State ──────────────────────────────────────
+let D, mobActiveCat='';
+
+// ── Bio markup parser ──────────────────────────
+function parseBio(text){
+  // **bold** → <strong>
+  text=text.replace(/\*\*(.+?)\*\*/g,'<strong style="font-weight:700;color:var(--fg)">$1</strong>');
+  // ::highlight:: → highlighted span
+  text=text.replace(/::(.+?)::/g,'<span style="background:rgba(14,14,14,.08);color:var(--fg);padding:1px 5px;border-radius:3px;font-weight:600">$1</span>');
+  return text;
+}
+
+function render(){
+  D=gsLoad();
+  const m=D.meta;
+  document.title=m.name+' — Portfolio';
+  renderLogo(m);
+  renderLeft(m);
+  renderRight();
+  renderMobile(m);
+  setupMusic();
+}
+
+// ── Logo ──────────────────────────────────────
+function renderLogo(m){
+  const type=m.logoType||'text', url=m.logoUrl||'', ratio=m.logoRatio||'wide';
+  const customTxt=m.logoCustomText||m.name;
+  const logoImgDesk=`<img src="${url}" class="nav-logo-img ${ratio}" alt="${m.name}"/>`;
+  const logoImgMob=`<img src="${url}" style="height:20px;width:auto;object-fit:contain;flex-shrink:0" alt="${m.name}"/>`;
+  let deskHtml, mobHtml;
+  if(type==='image'&&url){deskHtml=logoImgDesk;mobHtml=logoImgMob;}
+  else if(type==='custom'){deskHtml=`<span class="nav-logo-text">${customTxt}</span>`;mobHtml=`<span class="mob-logo-text">${customTxt}</span>`;}
+  else if(type==='both'&&url){
+    deskHtml=`<div style="display:flex;align-items:center;gap:7px">${logoImgDesk}<span class="nav-logo-text">${customTxt}</span></div>`;
+    mobHtml=`<div style="display:flex;align-items:center;gap:6px">${logoImgMob}<span class="mob-logo-text">${customTxt}</span></div>`;
+  } else {deskHtml=`<span class="nav-logo-text">${m.name}</span>`;mobHtml=`<span class="mob-logo-text">${m.name}</span>`;}
+  const d=document.getElementById('nav-logo'),mb=document.getElementById('mob-logo');
+  if(d)d.innerHTML=deskHtml;if(mb)mb.innerHTML=mobHtml;
+}
+
+// ── Left panel (desktop) ──────────────────────
+function renderLeft(m){
+  document.getElementById('l-name').textContent=m.name;
+  document.getElementById('l-role').textContent=m.role;
+  document.getElementById('l-bio').innerHTML=m.bio.map(p=>`<p>${parseBio(p)}</p>`).join('');
+  document.getElementById('l-pills').innerHTML=D.skills.map(s=>`<div class="pill">${s}</div>`).join('');
+  document.getElementById('l-exp').innerHTML=D.experience.map(e=>`
+    <div class="exp-blk">
+      <div class="exp-period">${e.period}</div>
+      <div class="exp-co">${e.company}</div>
+      <div class="exp-role">${e.role}</div>
+      <ul class="exp-ul">${e.bullets.map(b=>`<li>${b}</li>`).join('')}</ul>
+    </div>`).join('');
+  document.getElementById('l-awards').innerHTML=D.awards.filter(a=>!a.hidden).map(a=>`
+    <div class="award-row">
+      <div><div class="award-n">${a.name}</div><div class="award-d">${a.desc}</div></div>
+      <div class="award-y">${a.year}</div>
+    </div>`).join('');
+  document.getElementById('contact-rows').innerHTML=contactHTML(m);
+}
+
+function contactHTML(m){return`
+  <a href="mailto:${m.email}" class="c-row"><div class="c-icon"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 6l10 7 10-7"/></svg></div><span class="c-txt">${m.email}</span></a>
+  <a href="${m.linkedin}" target="_blank" rel="noopener" class="c-row"><div class="c-icon"><svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div><span class="c-txt">${(m.linkedin.match(/in\/([^\/\?]+)/)||[,''])[1]||m.linkedin.replace('https://','')}</span></a>
+  <a href="tel:${m.phone.replace(/\s/g,'')}" class="c-row"><div class="c-icon"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.07 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 1.17h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21 16z"/></svg></div><span class="c-txt">${m.phone}</span></a>
+  <a href="https://maps.google.com/?q=${encodeURIComponent(m.location)}" target="_blank" rel="noopener" class="c-row"><div class="c-icon"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="c-txt">${m.location}</span></a>`}
+
+// ── Right panel (desktop) ─────────────────────
+function renderRight(){
+  const te=document.getElementById('cat-tabs'),pe=document.getElementById('cat-panels');
+  te.innerHTML='';pe.innerHTML='';
+  D.categories.forEach((cat,i)=>{
+    const tab=document.createElement('div');
+    tab.className='cat-tab'+(i===0?' active':'');
+    tab.innerHTML=`<span class="f-icon${i===0?' open':''}"></span>${cat.label}`;
+    tab.onclick=()=>switchTab(cat.id,tab);
+    te.appendChild(tab);
+    const panel=document.createElement('div');
+    panel.className='cat-panel'+(i===0?' active':'');
+    panel.id='panel-'+cat.id;
+    const projs=D.projects.filter(p=>p.category===cat.id&&!p.hidden).sort((a,b)=>(a.order??0)-(b.order??0));
+    panel.innerHTML=projs.length?projs.map(p=>renderDesktopProject(p,cat)).join(''):`<div style="padding:40px 20px;font-family:var(--mono);font-size:11px;color:var(--fg-f)">No projects yet.</div>`;
+    pe.appendChild(panel);
+  });
+}
+
+function renderDesktopProject(p,cat){
+  return`<div class="proj" id="dp-${p.id}">
+    <div class="proj-hdr">
+      <div class="proj-l">
+        <div class="proj-client">${p.client}</div>
+        ${p.location?`<div style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--fg-f);margin-bottom:2px;text-transform:uppercase">${p.location}</div>`:''}
+        <div class="proj-svc">${p.services}</div>
+      </div>
+      <div class="proj-arrow" onclick="openModal('${p.id}')" title="Expand project">
+        <svg viewBox="0 0 24 24"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </div>
+    </div>
+    <p class="proj-desc">${p.desc}</p>
+    ${renderGrid(p)}
+  </div>`;
+}
+
+function renderGrid(p){
+  if(!p.media||!p.media.length)return'';
+  const lo=p.gridLayout||'2col';
+  if(lo==='1-2'&&p.media.length>=2)return`<div class="mg mg-1-2">${mi(p.media[0],'r34')}<div class="mg-sub">${p.media.slice(1).map(m=>mi(m,'r43')).join('')}</div></div>`;
+  if(lo==='2-1'&&p.media.length>=2){const last=p.media[p.media.length-1];return`<div class="mg mg-2-1"><div class="mg-sub">${p.media.slice(0,-1).map(m=>mi(m,'r43')).join('')}</div>${mi(last,'r34')}</div>`;}
+  const c={'2col':'mg-2','3col':'mg-3'}[lo]||'mg-2';
+  return`<div class="mg ${c}">${p.media.map(m=>mi(m,null)).join('')}</div>`;
+}
+
+function mi(m,def){
+  const r=m.layout==='wide'?'r169':m.layout==='tall'?'r34':m.layout==='square'?'r11':(def||'r43');
+  if(m.type==='image'||m.type==='gif')return`<div class="mi ${r}"><img src="${m.url}" alt="${m.label||''}"/><div class="mi-lbl">${m.label||''}</div></div>`;
+  if(m.type==='video')return`<div class="mi ${r}"><video src="${m.url}" autoplay loop muted playsinline></video><div class="mi-lbl">${m.label||''}</div></div>`;
+  return`<div class="mi ${r}"><div class="mi-ph ${m.bg||'d2'}"></div><div class="mi-lbl">${m.label||''}</div></div>`;
+}
+
+// ── Smart Embed Helper ────────────────────────
+function isFigmaUrl(url){
+  return url&&(url.includes('figma.com/proto')||url.includes('figma.com/design')||url.includes('figma.com/file')||url.includes('figma.com/board'));
+}
+// Returns an HTML string for the embed section — iframe for normal sites, preview card for Figma
+function renderEmbedHtml(url, label){
+  if(!url) return '';
+  const lbl=label||'Interactive Preview';
+  const labelHtml=`<div class="pm-iframe-label">${lbl}</div>`;
+  if(isFigmaUrl(url)){
+    // Figma blocks iframes — show a stylish preview card with Open button
+    const isProto=url.includes('/proto/');
+    const typeLabel=isProto?'Figma Prototype':'Figma Design';
+    const icon=`<svg width="14" height="14" viewBox="0 0 38 57" fill="none" style="flex-shrink:0"><rect x="0" y="0" width="19" height="19" rx="9.5" fill="#FF7262"/><rect x="19" y="0" width="19" height="19" rx="9.5" fill="#FF7262"/><rect x="0" y="19" width="19" height="19" rx="9.5" fill="#A259FF"/><rect x="19" y="19" width="19" height="19" rx="9.5" fill="#1ABCFE"/><rect x="0" y="38" width="19" height="19" rx="9.5" fill="#0ACF83"/></svg>`;
+    return `${labelHtml}<div class="embed-card">
+      <div style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);padding:48px 24px;flex-direction:column;gap:16px;min-height:200px">
+        <div style="width:64px;height:64px;background:rgba(255,255,255,.06);border-radius:16px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.1)">${icon.replace('width="14" height="14"','width="28" height="28"')}</div>
+        <div style="text-align:center">
+          <div style="font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.9);font-weight:600;margin-bottom:4px">${typeLabel}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.4);line-height:1.5">Figma doesn't allow embedding.<br/>Click to open the ${isProto?'interactive prototype':'design'} in a new tab.</div>
+        </div>
+        <a href="${url}" target="_blank" rel="noopener" class="embed-open-btn" style="background:#fff;color:#000;margin-top:4px">${icon} Open in Figma ↗</a>
+      </div>
+    </div>`;
+  }
+  // Normal embeddable URL — use iframe
+  return `${labelHtml}<div class="pm-iframe-wrap"><iframe src="${url}" loading="lazy" allow="fullscreen; clipboard-write" allowfullscreen></iframe></div>`;
+}
+
+// ── Desktop Modal ─────────────────────────────
+function openModal(pid){
+  const p=D.projects.find(x=>x.id===pid);if(!p)return;
+  const cat=D.categories.find(c=>c.id===p.category);
+  document.getElementById('pm-client').textContent=p.client;
+  document.getElementById('pm-cat-label').textContent=cat?.label||'';
+  document.getElementById('pm-svc').textContent=p.services;
+  document.getElementById('pm-desc').textContent=p.desc;
+  // Smart embed
+  const ifsec=document.getElementById('pm-iframe-section');
+  if(p.iframeUrl){
+    ifsec.style.display='block';
+    ifsec.innerHTML=renderEmbedHtml(p.iframeUrl,'Interactive Preview');
+  } else {
+    ifsec.style.display='none';
+    ifsec.innerHTML='';
+  }
+  // Media
+  document.getElementById('pm-media').innerHTML=renderModalMedia(p);
+  document.getElementById('proj-modal-bg').classList.add('open');
+  document.getElementById('proj-modal').classList.add('open');
+  document.getElementById('proj-modal').scrollTop=0;
+  document.body.style.overflow='hidden';
+}
+function closeModal(){
+  document.getElementById('proj-modal-bg').classList.remove('open');
+  document.getElementById('proj-modal').classList.remove('open');
+  const ifsec=document.getElementById('pm-iframe-section');
+  if(ifsec)ifsec.innerHTML='';
+  document.body.style.overflow='';
+}
+function renderModalMedia(p){
+  if(!p.media||!p.media.length)return'';
+  return`<div class="mg mg-2">${p.media.map(m=>mi(m,'r43')).join('')}</div>`;
+}
+
+// ── Mobile render ─────────────────────────────
+function renderMobile(m){
+  // Hero: name 1 line → role 1 line → full-width bio
+  document.getElementById('mob-hero').innerHTML=`
+    <div class="mob-name">${m.name}</div>
+    <div class="mob-role">${m.role}</div>
+    <div class="mob-bio">${m.bio.map(p=>`<p>${parseBio(p)}</p>`).join('')}</div>`;
+
+  // Skills (rendered later in mob-skills element, after projects)
+  const skillsEl=document.getElementById('mob-skills');
+  if(skillsEl)skillsEl.innerHTML=`
+    <div class="mob-skills-label">Disciplines</div>
+    <div class="mob-pills-wrap">${D.skills.map(s=>`<div class="mob-pill">${s}</div>`).join('')}</div>`;
+
+  // Category tabs
+  const firstCat=D.categories[0]?.id||'';
+  if(!mobActiveCat)mobActiveCat=firstCat;
+  const tabsEl=document.getElementById('mob-cat-tabs');
+  tabsEl.innerHTML=D.categories.map(c=>`<div class="mob-cat-tab${c.id===mobActiveCat?' active':''}" onclick="mobSwitchCat('${c.id}',this)">${c.label}</div>`).join('');
+
+  // Projects
+  renderMobProjects();
+
+  // Experience + Awards collapsible
+  document.getElementById('mob-extra').innerHTML=`
+    <div class="mob-exp-section">
+      <div class="mob-exp-toggle" onclick="toggleMobExp('mob-exp-body','mob-exp-ic')">
+        <span class="mob-exp-toggle-l">Experience</span>
+        <span class="mob-exp-toggle-ic" id="mob-exp-ic">▾</span>
+      </div>
+      <div class="mob-exp-body" id="mob-exp-body">
+        ${D.experience.map(e=>`
+          <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--line)">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--fg-f);margin-bottom:2px">${e.period}</div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:1px">${e.company}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--fg-m);margin-bottom:6px">${e.role}</div>
+            <ul style="list-style:none">${e.bullets.map(b=>`<li style="font-size:11.5px;color:var(--fg-m);line-height:1.75;padding-left:12px;position:relative"><span style="position:absolute;left:2px">·</span>${b}</li>`).join('')}</ul>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="mob-exp-section">
+      <div class="mob-exp-toggle" onclick="toggleMobExp('mob-aw-body','mob-aw-ic')">
+        <span class="mob-exp-toggle-l">Recognition</span>
+        <span class="mob-exp-toggle-ic" id="mob-aw-ic">▾</span>
+      </div>
+      <div class="mob-exp-body" id="mob-aw-body">
+        ${D.awards.map(a=>`
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)">
+            <div><div style="font-weight:600;font-size:12px">${a.name}</div><div style="font-size:10.5px;color:var(--fg-m)">${a.desc}</div></div>
+            <div style="font-family:var(--mono);font-size:9.5px;color:var(--fg-f);margin-left:12px">${a.year}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  // Contact footer — last section
+  document.getElementById('mob-contact-footer').innerHTML=`
+    <div class="mob-contact-footer-label">Contact</div>
+    <a href="mailto:${m.email}" class="mob-cf-row"><div class="mob-cf-icon">✉</div><span style="word-break:break-all">${m.email}</span></a>
+    <a href="${m.linkedin}" target="_blank" rel="noopener" class="mob-cf-row"><div class="mob-cf-icon" style="font-family:var(--sans);font-size:10px;font-weight:700">in</div>${m.linkedin.replace('https://','')}</a>
+    <a href="tel:${m.phone.replace(/\s/g,'')}" class="mob-cf-row"><div class="mob-cf-icon">☎</div>${m.phone}</a>
+    <span class="mob-cf-row" style="color:var(--fg-m)"><div class="mob-cf-icon">📍</div>${m.location}</span>
+    <div style="padding-top:20px;border-top:1px solid var(--line);margin-top:8px">
+      <a href="overview.html" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg);text-decoration:none;padding:9px 16px;border:1px solid var(--line);border-radius:100px">View Overview ↗</a>
+    </div>`;
+}
+
+function renderMobProjects(){
+  const projs=D.projects.filter(p=>!p.hidden&&p.category===mobActiveCat).sort((a,b)=>a.order-b.order);
+  const el=document.getElementById('mob-projects');
+  if(!projs.length){el.innerHTML=`<div style="padding:28px 18px;font-family:var(--mono);font-size:11px;color:var(--fg-f)">No projects in this category.</div>`;return}
+  el.innerHTML=projs.map(p=>renderMobProject(p)).join('');
+}
+
+function renderMobProject(p){
+  const cat=D.categories.find(c=>c.id===p.category);
+  // Horizontal media strip
+  const strip=p.media&&p.media.length?`<div class="mob-media-strip">${p.media.map(m=>{
+    const wc=m.layout==='tall'?'w-tall':m.layout==='wide'?'w-wide':m.layout==='square'?'w-square':'w-normal';
+    if(m.type==='image'||m.type==='gif')return`<div class="mob-mi ${wc}"><img src="${m.url}" alt="${m.label||''}"/></div>`;
+    if(m.type==='video')return`<div class="mob-mi ${wc}"><video src="${m.url}" autoplay loop muted playsinline></video></div>`;
+    return`<div class="mob-mi ${wc}"><div class="mob-mi-ph ${m.bg||'d2'}"></div></div>`;
+  }).join('')}</div>`:'';
+  return`<div class="mob-proj">
+    <div class="mob-proj-top">
+      <div class="mob-proj-client">${p.client}</div>
+      <div class="mob-proj-expand" onclick="openSheet('${p.id}')" title="Expand">
+        <svg viewBox="0 0 24 24"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </div>
+    </div>
+    <div class="mob-proj-svc">${p.services}</div>
+    <div class="mob-proj-desc">${p.desc}</div>
+    ${strip}
+  </div>`;
+}
+
+function mobSwitchCat(id,el){
+  mobActiveCat=id;
+  document.querySelectorAll('.mob-cat-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderMobProjects();
+}
+function toggleMobExp(bodyId,icId){
+  document.getElementById(bodyId).classList.toggle('open');
+  document.getElementById(icId).classList.toggle('open');
+}
+
+// ── Mobile Bottom Sheet ───────────────────────
+function openSheet(pid){
+  const p=D.projects.find(x=>x.id===pid);if(!p)return;
+  const cat=D.categories.find(c=>c.id===p.category);
+  document.getElementById('sh-client').textContent=p.client;
+  document.getElementById('sh-cat').textContent=cat?.label||'';
+  // Body content
+  let html=`<div class="sheet-svc">${p.services}</div>`;
+  html+=`<div class="sheet-desc">${p.desc}</div>`;
+  if(p.iframeUrl){
+    html+=renderEmbedHtml(p.iframeUrl,'Interactive Preview');
+  }
+  // Full media grid in sheet
+  if(p.media&&p.media.length){
+    html+=`<div class="sheet-mg sheet-mg-2">${p.media.map(m=>{
+      const r=m.layout==='tall'?'r34':m.layout==='square'?'r11':m.layout==='wide'?'r169':'r43';
+      if(m.type==='image'||m.type==='gif')return`<div class="sheet-mi ${r}"><img src="${m.url}" alt="${m.label||''}" style="width:100%;height:100%;object-fit:cover"/></div>`;
+      if(m.type==='video')return`<div class="sheet-mi ${r}"><video src="${m.url}" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover"></video></div>`;
+      return`<div class="sheet-mi ${r}"><div class="sheet-mi-ph ${m.bg||'d2'}"></div></div>`;
+    }).join('')}</div>`;
+  }
+  document.getElementById('sh-body').innerHTML=html;
+  document.getElementById('sheet-bg').classList.add('open');
+  document.getElementById('sheet').classList.add('open');
+  document.getElementById('sh-body').scrollTop=0;
+}
+function closeSheet(){
+  document.getElementById('sheet-bg').classList.remove('open');
+  document.getElementById('sheet').classList.remove('open');
+  // Clear iframes to stop playback
+  setTimeout(()=>{document.getElementById('sh-body').innerHTML=''},400);
+}
+
+// ── Music ──────────────────────────────────────
+function setupMusic(){
+  const bar=document.getElementById('music-bar');
+  const id=(D.meta.spotifyUrl||'').match(/track\/([a-zA-Z0-9]+)/)?.[1];
+  if(!id){bar.classList.remove('visible');return}
+  document.getElementById('sp-frame').src=`https://open.spotify.com/embed/track/${id}?utm_source=generator&autoplay=1`;
+  bar.classList.add('visible');
+  bar.onclick=()=>{
+    const playing=bar.dataset.playing!=='0';
+    bar.dataset.playing=playing?'0':'1';
+    document.getElementById('sp-frame').contentWindow?.postMessage({command:playing?'pause':'play'},'*');
+    document.getElementById('mb-dot').classList.toggle('paused',playing);
+    document.getElementById('mb-btn').textContent=playing?'▶':'❚❚';
+  };
+  bar.dataset.playing='1';
+}
+
+// ── Desktop interactions ───────────────────────
+function switchTab(id,el){
+  document.querySelectorAll('.cat-tab').forEach(t=>{t.classList.remove('active');t.querySelector('.f-icon').classList.remove('open')});
+  document.querySelectorAll('.cat-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');el.querySelector('.f-icon').classList.add('open');
+  document.getElementById('panel-'+id).classList.add('active');
+  document.getElementById('right').scrollTop=0;
+}
+function scrollToContact(e){e.preventDefault();document.getElementById('l-contact').scrollIntoView({behavior:'smooth'})}
+
+// ── Divider — clamped to 320px–52% ────────────
+const leftEl=document.getElementById('left'),divEl=document.getElementById('div');
+let drag=false,sx=0,sw=0;
+function clampW(w){return Math.min(window.innerWidth*.52,Math.max(320,w))}
+function setLeftW(w){const cw=clampW(w);leftEl.style.width=cw+'px';document.documentElement.style.setProperty('--left-w',cw+'px');}
+divEl.addEventListener('mousedown',e=>{drag=true;sx=e.clientX;sw=leftEl.offsetWidth;document.body.classList.add('drag');e.preventDefault()});
+document.addEventListener('mousemove',e=>{if(!drag)return;setLeftW(sw+(e.clientX-sx))});
+document.addEventListener('mouseup',()=>{drag=false;document.body.classList.remove('drag')});
+divEl.addEventListener('touchstart',e=>{drag=true;sx=e.touches[0].clientX;sw=leftEl.offsetWidth;e.preventDefault()},{passive:false});
+document.addEventListener('touchmove',e=>{if(!drag)return;setLeftW(sw+(e.touches[0].clientX-sx))},{passive:true});
+document.addEventListener('touchend',()=>{drag=false});
+// Also clamp on resize
+window.addEventListener('resize',()=>{if(leftEl.style.width)setLeftW(parseInt(leftEl.style.width))});
+
+// ── Cursor ─────────────────────────────────────
+const cur=document.getElementById('cur'),curR=document.getElementById('cur-r');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+(function loop(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(loop)})();
+document.addEventListener('mouseenter',e=>{if(e.target.closest('a,.proj-arrow,.cat-tab,.pill,.dm-btn,.mob-proj-expand')){cur.style.width='14px';cur.style.height='14px';curR.style.width='44px';curR.style.height='44px'}},true);
+document.addEventListener('mouseleave',e=>{if(e.target.closest('a,.proj-arrow,.cat-tab,.pill,.dm-btn,.mob-proj-expand')){cur.style.width='8px';cur.style.height='8px';curR.style.width='28px';curR.style.height='28px'}},true);
+
+// ── Escape key ─────────────────────────────────
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeSheet()}});
+
+// ── Sheet swipe to close ───────────────────────
+let shSY=0,shDY=0;
+document.getElementById('sheet').addEventListener('touchstart',e=>{shSY=e.touches[0].clientY;shDY=0},{passive:true});
+document.getElementById('sheet').addEventListener('touchmove',e=>{shDY=e.touches[0].clientY-shSY},{passive:true});
+document.getElementById('sheet').addEventListener('touchend',()=>{if(shDY>80)closeSheet()});
+
+// ── Init ───────────────────────────────────────
+initDark();render();
+window.addEventListener('storage',e=>{if(e.key===GS_KEY)render()});
+</script>
+</body>
+</html>

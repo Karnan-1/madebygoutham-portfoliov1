@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#f5f2ed" media="(prefers-color-scheme: light)"/>
+  <meta name="theme-color" content="#111010" media="(prefers-color-scheme: dark)"/>
+  <title>Overview — Goutham Shibulal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#f5f2ed;--fg:#0e0e0e;--fg-m:#555;--fg-f:#aaa;--line:rgba(14,14,14,.13);--nav-h:46px;--mono:'DM Mono',monospace;--serif:'DM Serif Display',serif;--sans:'Syne',sans-serif}
+    body.dark{--bg:#111010;--fg:#eeece8;--fg-m:#888;--fg-f:#3a3a3a;--line:rgba(238,236,232,.1)}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--fg);font-family:var(--sans);cursor:none;transition:background .3s,color .3s;overflow-x:hidden}
+    @media(hover:none){body{cursor:auto}#cur,#cur-r{display:none}}
+    #cur,#cur-r{pointer-events:none;z-index:9999;position:fixed;border-radius:50%;transform:translate(-50%,-50%);left:-100px;top:-100px;opacity:0;transition:opacity .2s}
+    #cur{width:8px;height:8px;background:var(--fg);transition:width .15s,height .15s,opacity .2s}
+    #cur-r{width:28px;height:28px;border:1px solid rgba(128,128,128,.4);z-index:9998;transition:width .25s,height .25s,opacity .2s}
+    nav{position:sticky;top:0;height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;padding:0 32px;border-bottom:1px solid var(--line);background:var(--bg);z-index:100;transition:background .3s}
+    .nav-logo{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.07em;text-decoration:none;color:var(--fg);white-space:nowrap}
+    .nav-links{display:flex;align-items:center;gap:2px}
+    .nav-links a{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-m);text-decoration:none;padding:5px 9px;border-radius:3px;transition:color .2s,background .2s}
+    .nav-links a:hover,.nav-links a.active{color:var(--fg);background:rgba(128,128,128,.1)}
+    .dm-btn{width:28px;height:28px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;background:transparent;margin-left:4px;transition:background .2s;user-select:none}
+    .dm-btn:hover{background:rgba(128,128,128,.1)}
+    .page-wrap{max-width:1080px;margin:0 auto;padding:0 32px 100px}
+    .sec{padding:60px 0;border-bottom:1px solid var(--line)}
+    .sec:last-child{border-bottom:none}
+    .eyebrow{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--fg-f);margin-bottom:14px}
+    /* Hero */
+    .ov-hero{padding:64px 0 56px;border-bottom:1px solid var(--line)}
+    .ov-title{font-family:var(--serif);font-size:clamp(2.6rem,5.5vw,5rem);line-height:1.0;margin-bottom:20px}
+    .ov-title em{font-style:italic;color:var(--fg-m)}
+    .ov-sub{font-size:15px;line-height:1.8;color:var(--fg-m);max-width:580px}
+    /* 2-col */
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:0}
+    .two-col-l{border-right:1px solid var(--line);padding-right:48px}
+    .two-col-r{padding-left:48px}
+    .sec-label{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-f);margin-bottom:20px}
+    .body-text{font-size:14px;line-height:1.85;color:var(--fg-m)}
+    .body-text p{margin-bottom:14px}.body-text p:last-child{margin-bottom:0}
+    .brands-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+    .brand-chip{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;padding:5px 13px;border:1px solid var(--line);border-radius:100px;color:var(--fg-m)}
+    .phil-item{padding:14px 0;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:14px}
+    .phil-item:last-child{border-bottom:none}
+    .phil-num{font-family:var(--mono);font-size:9.5px;color:var(--fg-f);width:22px;flex-shrink:0}
+    .phil-text{font-size:13px;line-height:1.7;color:var(--fg-m)}
+    /* Tool Stack */
+    .tools-grid{display:flex;flex-wrap:wrap;gap:10px}
+    .tool-chip{display:flex;align-items:center;gap:9px;padding:9px 16px;border:1px solid var(--line);border-radius:8px;font-family:var(--mono);font-size:10.5px;color:var(--fg-m);transition:border-color .2s,color .2s;cursor:default}
+    .tool-chip:hover{border-color:var(--fg);color:var(--fg)}
+    .tool-icon{width:18px;height:18px;flex-shrink:0;object-fit:contain}
+    body.dark .tool-icon{filter:invert(1) brightness(1.5)}
+    /* Logo Marquee */
+    .marquee-outer{overflow:hidden;padding:20px 0;mask-image:linear-gradient(to right,transparent,black 12%,black 88%,transparent);-webkit-mask-image:linear-gradient(to right,transparent,black 12%,black 88%,transparent)}
+    .marquee-track{display:flex;align-items:center;gap:48px;width:max-content;animation:marquee 30s linear infinite}
+    .marquee-track:hover{animation-play-state:paused}
+    @keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    .logo-item{display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:.5;transition:opacity .25s}
+    body.dark .logo-item img{filter:invert(1) brightness(2)}
+    .logo-item:hover{opacity:1}
+    .logo-item img{max-height:32px;max-width:110px;object-fit:contain;display:block}
+    .logo-item-text{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;color:var(--fg-m);white-space:nowrap}
+    /* Testimonials */
+    .testi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+    .testi-card{border:1px solid var(--line);border-radius:10px;padding:22px 22px 20px;display:flex;flex-direction:column;gap:16px;transition:border-color .2s}
+    .testi-card:hover{border-color:var(--fg-m)}
+    .testi-quote{font-family:var(--serif);font-size:1rem;line-height:1.7;color:var(--fg);font-style:italic}
+    .testi-name{font-weight:700;font-size:12.5px}
+    .testi-role{font-family:var(--mono);font-size:9.5px;color:var(--fg-m);margin-top:2px}
+    .testi-empty{font-family:var(--mono);font-size:11px;color:var(--fg-f);padding:12px 0}
+    /* Jams */
+    .jams-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .jam-label{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-f);margin-bottom:10px}
+    .jams-extra{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+    .jam-link{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;padding:6px 13px;border:1px solid var(--line);border-radius:100px;color:var(--fg-m);text-decoration:none;transition:border-color .2s,color .2s}
+    .jam-link:hover{border-color:var(--fg);color:var(--fg)}
+    /* CTAs */
+    .cta-row{display:flex;gap:12px;flex-wrap:wrap;padding-top:56px}
+    .btn-primary{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;background:var(--fg);color:var(--bg);font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;border-radius:6px;transition:opacity .2s}
+    .btn-primary:hover{opacity:.8}
+    .btn-outline{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border:1px solid var(--line);color:var(--fg);font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;border-radius:6px;transition:border-color .2s}
+    .btn-outline:hover{border-color:var(--fg)}
+    /* Mobile */
+    @media(max-width:700px){
+      .page-wrap{padding:0 18px 80px}
+      nav{padding:0 16px}
+      .ov-hero{padding:36px 0 32px}
+      .ov-title{font-size:2.2rem}
+      .two-col{grid-template-columns:1fr}
+      .two-col-l{border-right:none;padding-right:0;padding-bottom:32px;margin-bottom:0;border-bottom:1px solid var(--line)}
+      .two-col-r{padding-left:0;padding-top:32px}
+      .jams-grid{grid-template-columns:1fr}
+      .testi-grid{grid-template-columns:1fr}
+      .sec{padding:40px 0}
+      .cta-row{padding-top:36px}
+    }
+  </style>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+</head>
+<body>
+<div id="cur"></div><div id="cur-r"></div>
+
+<nav>
+  <a href="/" class="nav-logo" id="nav-name">Goutham Shibulal</a>
+  <div class="nav-links">
+    <a href="/">Feed</a>
+    <a href="/overview" class="active">Overview</a>
+    <div class="dm-btn" id="dm-btn" onclick="toggleDark()">☀</div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- HERO -->
+  <div class="ov-hero">
+    <div class="eyebrow">Overview</div>
+    <h1 class="ov-title" id="ov-title">Design that is<br><em>desired before bought</em></h1>
+    <p class="ov-sub" id="ov-sub">A multidisciplinary practice spanning brand identity, UI/UX design, and visual strategy — built on Gestalt principles and shaped by a background in photography and film.</p>
+  </div>
+
+  <!-- ABOUT + PHILOSOPHY -->
+  <div class="sec two-col">
+    <div class="two-col-l">
+      <div class="sec-label">About</div>
+      <div class="body-text" id="ov-bio"></div>
+      <div style="margin-top:24px">
+        <div class="sec-label">Brands worked with</div>
+        <div class="brands-row" id="ov-brands"></div>
+      </div>
+    </div>
+    <div class="two-col-r">
+      <div class="sec-label">Design Philosophy</div>
+      <div id="ov-philosophy"></div>
+    </div>
+  </div>
+
+  <!-- TOOL STACK -->
+  <div class="sec" id="sec-tools">
+    <div class="eyebrow">Tool Stack</div>
+    <div style="margin-top:4px">
+      <div class="tools-grid" id="tools-grid"></div>
+    </div>
+  </div>
+
+  <!-- CLIENT LOGO MARQUEE -->
+  <div class="sec" id="sec-logos" style="padding:36px 0">
+    <div class="eyebrow" style="margin-bottom:18px">Brands &amp; Clients</div>
+    <div class="marquee-outer">
+      <div class="marquee-track" id="marquee-track"></div>
+    </div>
+  </div>
+
+  <!-- TESTIMONIALS -->
+  <div class="sec" id="sec-testimonials">
+    <div class="eyebrow">Kind Words</div>
+    <h2 style="font-family:var(--serif);font-size:clamp(1.6rem,3vw,2.4rem);line-height:1.1;margin:6px 0 28px">What clients say</h2>
+    <div class="testi-grid" id="testi-grid"></div>
+  </div>
+
+  <!-- FAVOURITE JAMS -->
+  <div class="sec" id="sec-jams">
+    <div class="eyebrow">Favourite Jams</div>
+    <h2 style="font-family:var(--serif);font-size:clamp(1.4rem,2.5vw,2rem);line-height:1.1;margin:6px 0 28px">Currently listening to</h2>
+    <div class="jams-grid" id="jams-grid"></div>
+    <div class="jams-extra" id="jams-extra"></div>
+  </div>
+
+  <!-- CTAs -->
+  <div class="cta-row">
+    <a href="/" class="btn-primary" id="cta1">View Work ↗</a>
+    <a href="#" class="btn-outline" id="cta2">Get in Touch</a>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<script>
+const GS_KEY='gs_portfolio_data';
+const DM_KEY='gs_dm';
+function gsLoad(){try{const r=localStorage.getItem(GS_KEY);return r?JSON.parse(r):null}catch(e){return null}}
+function initDark(){const sv=localStorage.getItem(DM_KEY);const sys=matchMedia('(prefers-color-scheme:dark)').matches;applyDark(sv!==null?sv==='1':sys,false)}
+function applyDark(on,save=true){
+  document.body.classList.toggle('dark',on);
+  document.getElementById('dm-btn').textContent=on?'☽':'☀';
+  document.querySelector('meta[name="theme-color"][media*="light"]')?.setAttribute('content',on?'#111010':'#f5f2ed');
+  if(save)localStorage.setItem(DM_KEY,on?'1':'0');
+}
+function toggleDark(){applyDark(!document.body.classList.contains('dark'))}
+matchMedia('(prefers-color-scheme:dark)').addEventListener('change',e=>{if(!localStorage.getItem(DM_KEY))applyDark(e.matches,false)});
+
+// Bio markup parser (same as portfolio page)
+function parseBio(text){
+  text=text.replace(/\*\*(.+?)\*\*/g,'<strong style="font-weight:700;color:var(--fg)">$1</strong>');
+  text=text.replace(/::(.+?)::/g,'<span style="background:rgba(14,14,14,.08);color:var(--fg);padding:1px 5px;border-radius:3px;font-weight:600">$1</span>');
+  return text;
+}
+
+const D=gsLoad();
+const m=D?.meta||{};
+const ov=m.overview||{};
+
+// Nav logo — respect branding settings
+const nn=document.getElementById('nav-name');
+if(nn){
+  const lt=m.logoType||'text', lu=m.logoUrl||'', lr=m.logoRatio||'wide', lct=m.logoCustomText||m.name;
+  const h=lr==='tall'?'30px':lr==='sq'?'24px':'22px';
+  if(lt==='image'&&lu){nn.innerHTML=`<img src="${lu}" style="height:${h};width:auto;object-fit:contain;display:block" alt="${m.name}"/>`;}
+  else if(lt==='custom'){nn.textContent=lct;}
+  else if(lt==='both'&&lu){nn.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><img src="${lu}" style="height:${h};width:auto;object-fit:contain" alt="${m.name}"/><span>${lct}</span></div>`;}
+  else{nn.textContent=m.name||'Portfolio';}
+}
+
+// Hero
+if(ov.headline){const ht=document.getElementById('ov-title');if(ht)ht.innerHTML=ov.headline;}
+if(ov.sub){const hs=document.getElementById('ov-sub');if(hs)hs.textContent=ov.sub;}
+
+// Overview Bio — uses dedicated overview bio, falls back to portfolio bio
+const bioEl=document.getElementById('ov-bio');
+if(bioEl){
+  const ovBio=ov.bio&&ov.bio.length?ov.bio:m.bio||[];
+  if(ovBio.length){
+    bioEl.innerHTML=ovBio.map(p=>`<p>${parseBio(p)}</p>`).join('');
+    bioEl.closest('.two-col-l').style.display='';
+  } else {
+    bioEl.closest('.two-col-l').style.display='none';
+  }
+}
+
+// Brands (philosophy)
+const brandsEl=document.getElementById('ov-brands');
+if(brandsEl){
+  const b=ov.brands||['Pine Labs','Zomato','Swiggy','Darwinbox','Shopify','Amadeus','Bouygues Telecom'];
+  brandsEl.innerHTML=b.map(x=>`<span class="brand-chip">${x}</span>`).join('');
+}
+
+// Philosophy
+const philEl=document.getElementById('ov-philosophy');
+if(philEl){
+  const phil=ov.philosophy||[
+    'Brands are built on perception — every detail communicates intent.',
+    'Gestalt over decoration — systems must create meaning, not just beauty.',
+    'The best interfaces feel inevitable — not designed, just true.',
+    'Strategy and aesthetics are one conversation, not two.'
+  ];
+  philEl.innerHTML=phil.map((t,i)=>`<div class="phil-item"><span class="phil-num">0${i+1}</span><span class="phil-text">${t}</span></div>`).join('');
+}
+
+// Tool Stack — reads from ov.tools set in admin
+const toolsGrid=document.getElementById('tools-grid');
+if(toolsGrid){
+  const tools=m.toolStack&&m.toolStack.length?m.toolStack:['Figma','Adobe Creative Suite','Framer','Webflow','ProtoPie','Principle','InVision','Zeplin','Maze','Hotjar','Google Analytics (GA4)','Optimal Workshop','Jira','Confluence','Notion','ClickUp','Midjourney','Runway ML','Stable Diffusion','Uizard','Final Cut Pro','Canva','Git / GitHub','Vercel','Cursor','HTML/CSS (Working Knowledge)','React (Basic Understanding)','Tailwind CSS'];
+  if(tools.length){
+    // Complete tool slug map
+    const slugMap={
+      'figma':'figma',
+      'adobe creative suite':'adobecreativecloud',
+      'adobe creative cloud':'adobecreativecloud',
+      'adobe illustrator':'adobeillustrator',
+      'adobe photoshop':'adobephotoshop',
+      'adobe after effects':'adobeaftereffects',
+      'adobe premiere pro':'adobepremierepro',
+      'adobe xd':'adobexd',
+      'adobe indesign':'adobeindesign',
+      'after effects':'adobeaftereffects',
+      'photoshop':'adobephotoshop',
+      'illustrator':'adobeillustrator',
+      'premiere pro':'adobepremierepro',
+      'framer':'framer',
+      'webflow':'webflow',
+      'protopie':'protopie',
+      'principle':'principle',
+      'invision':'invision',
+      'zeplin':'zeplin',
+      'maze':'maze',
+      'hotjar':'hotjar',
+      'google analytics':'googleanalytics',
+      'google analytics (ga4)':'googleanalytics',
+      'ga4':'googleanalytics',
+      'optimal workshop':'optimalworkshop',
+      'jira':'jira',
+      'confluence':'confluence',
+      'notion':'notion',
+      'clickup':'clickup',
+      'midjourney':'midjourney',
+      'runway ml':'runwayml',
+      'stable diffusion':'stablediffusion',
+      'uizard':'uizard',
+      'final cut pro':'finalcutpro',
+      'canva':'canva',
+      'git':'git',
+      'github':'github',
+      'git / github':'github',
+      'vercel':'vercel',
+      'cursor':'cursor',
+      'html5':'html5',
+      'html/css (working knowledge)':'html5',
+      'html/css':'html5',
+      'css3':'css3',
+      'react':'react',
+      'react (basic understanding)':'react',
+      'tailwind css':'tailwindcss',
+      'tailwindcss':'tailwindcss',
+      'vs code':'visualstudiocode',
+      'vscode':'visualstudiocode',
+      'chatgpt':'openai',
+      'miro':'miro',
+      'slack':'slack',
+      'microsoft office':'microsoftoffice',
+      'google docs':'googledocs',
+      'google drive':'googledrive',
+      'airtable':'airtable',
+      'spline':'spline'
+    };
+    toolsGrid.innerHTML=tools.map(t=>{
+      const key=t.toLowerCase().trim();
+      const iconSlug=slugMap[key]||(key.replace(/\s+/g,'').replace(/[^a-z0-9]/g,''));
+      return`<div class="tool-chip"><img class="tool-icon" src="https://cdn.simpleicons.org/${iconSlug}" alt="${t}" onerror="this.style.display='none'"/>${t}</div>`;
+    }).join('');
+  } else {
+    document.getElementById('sec-tools').style.display='none';
+  }
+}
+
+// Client Logo Marquee
+const marqueeTrack=document.getElementById('marquee-track');
+const logos=m.clientLogos||[];
+if(marqueeTrack){
+  if(logos.length){
+    const doubled=[...logos,...logos];
+    marqueeTrack.innerHTML=doubled.map(l=>`<div class="logo-item">${l.url?`<img src="${l.url}" alt="${l.name||'logo'}"/>`:`<span class="logo-item-text">${l.name||''}</span>`}</div>`).join('');
+  } else {
+    const fallback=['Pine Labs','Zomato','Swiggy','Darwinbox','Shopify','Amadeus','Bouygues Telecom'];
+    marqueeTrack.innerHTML=[...fallback,...fallback].map(b=>`<div class="logo-item"><span class="logo-item-text">${b}</span></div>`).join('');
+  }
+}
+
+// Testimonials
+const testiGrid=document.getElementById('testi-grid');
+if(testiGrid){
+  const t=m.testimonials||[];
+  if(t.length){
+    testiGrid.innerHTML=t.map(x=>`
+      <div class="testi-card">
+        <div class="testi-quote">\u201C${x.quote||''}\u201D</div>
+        <div>
+          <div class="testi-name">${x.name||''}</div>
+          <div class="testi-role">${x.role||''}</div>
+        </div>
+      </div>`).join('');
+  } else {
+    testiGrid.innerHTML='<div class="testi-empty">Testimonials coming soon — add them in the admin panel.</div>';
+  }
+}
+
+// Jams
+const jamsGrid=document.getElementById('jams-grid');
+const jamsExtraEl=document.getElementById('jams-extra');
+const jams=m.jams||{};
+if(jamsGrid){
+  let html='';
+  if(jams.spotifyUrl){
+    const trk=jams.spotifyUrl.match(/track\/([a-zA-Z0-9]+)/)?.[1];
+    const pl=jams.spotifyUrl.match(/playlist\/([a-zA-Z0-9]+)/)?.[1];
+    const eid=trk||pl,etype=trk?'track':'playlist';
+    if(eid)html+=`<div><div class="jam-label">Spotify</div><iframe src="https://open.spotify.com/embed/${etype}/${eid}?utm_source=generator" width="100%" height="${etype==='playlist'?352:152}" frameborder="0" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" style="border-radius:10px;display:block"></iframe></div>`;
+  }
+  if(jams.appleUrl){
+    html+=`<div><div class="jam-label">Apple Music</div><iframe allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write" frameborder="0" height="175" style="width:100%;border-radius:10px;background:transparent;display:block" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" src="${jams.appleUrl}"></iframe></div>`;
+  }
+  jamsGrid.innerHTML=html||'<div style="grid-column:1/-1;font-family:var(--mono);font-size:11px;color:var(--fg-f);padding:8px 0">Add your music in the admin panel → Favourite Jams.</div>';
+}
+if(jamsExtraEl&&jams.extra&&jams.extra.length){
+  jamsExtraEl.innerHTML=jams.extra.filter(j=>j.url).map(j=>`<a href="${j.url}" target="_blank" rel="noopener" class="jam-link">♪ ${j.label||'Listen'}</a>`).join('');
+}
+
+// CTAs
+const c1=document.getElementById('cta1'),c2=document.getElementById('cta2');
+if(c1){if(ov.cta1Label)c1.textContent=ov.cta1Label;if(ov.cta1Url)c1.href=ov.cta1Url;}
+if(c2){if(ov.cta2Label)c2.textContent=ov.cta2Label;c2.href=ov.cta2Url||(m.email?'mailto:'+m.email:'#');}
+
+// Cursor
+const cur=document.getElementById('cur'),curR=document.getElementById('cur-r');
+let mx=-100,my=-100,rx=-100,ry=-100,curVisible=false;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+  if(!curVisible){curVisible=true;cur.style.opacity='1';curR.style.opacity='1';}
+});
+(function loop(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(loop)})();
+document.querySelectorAll('a,.dm-btn,.tool-chip').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='14px';cur.style.height='14px';curR.style.width='44px';curR.style.height='44px'});
+  el.addEventListener('mouseleave',()=>{cur.style.width='8px';cur.style.height='8px';curR.style.width='28px';curR.style.height='28px'});
+});
+
+initDark();
+</script>
+</body>
+</html>

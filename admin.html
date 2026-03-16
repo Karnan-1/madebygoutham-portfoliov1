@@ -1,0 +1,2105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="GS Admin"/>
+  <meta name="theme-color" content="#0f0f0f"/>
+  <link rel="manifest" href="admin-manifest.json"/>
+  <title>GS Admin — Portfolio CMS</title>
+  <script src="https://apis.google.com/js/api.js" async defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0f0f0f;--panel:#161616;--border:#252525;--bl:#2e2e2e;
+      --fg:#f0f0f0;--fg-m:#888;--fg-f:#444;
+      --acc:#31c4df;--acc-d:#1a9ab0;--red:#e05050;--green:#50c878;
+      --mono:'DM Mono',monospace;--sans:'Syne',sans-serif;
+    }
+    html,body{min-height:100%;background:var(--bg);color:var(--fg);font-family:var(--sans)}
+
+    /* ─ Login ─ */
+    #login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
+    #login.gone{display:none}
+    .lbox{width:100%;max-width:360px;padding:40px 32px;border:1px solid var(--bl);border-radius:12px;background:var(--panel)}
+    .lbox-logo{font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--fg-m);margin-bottom:28px}
+    .lbox-logo span{color:var(--acc)}
+    .lbox-title{font-size:1.8rem;font-weight:700;margin-bottom:6px}
+    .lbox-sub{font-family:var(--mono);font-size:11px;color:var(--fg-m);margin-bottom:28px}
+    .lerr{font-family:var(--mono);font-size:11px;color:var(--red);margin-bottom:14px;display:none}
+    .lerr.show{display:block}
+
+    /* ─ Form elements (shared) ─ */
+    .fg{margin-bottom:14px}
+    .fl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-m);margin-bottom:6px;display:block}
+    .fi{width:100%;background:var(--bg);border:1px solid var(--bl);border-radius:6px;padding:9px 12px;color:var(--fg);font-family:var(--mono);font-size:13px;outline:none;transition:border-color .2s}
+    .fi:focus{border-color:var(--acc)}
+    .fi::placeholder{color:var(--fg-f)}
+    textarea.fi{resize:vertical;min-height:72px;line-height:1.6}
+    select.fi{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;cursor:pointer}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:7px;font-family:var(--mono);font-size:11px;letter-spacing:.07em;border:none;cursor:pointer;transition:all .2s;text-transform:uppercase;white-space:nowrap}
+    .btn-p{background:var(--acc);color:#000}.btn-p:hover{background:var(--acc-d)}
+    .btn-s{background:var(--border);color:var(--fg)}.btn-s:hover{background:var(--bl)}
+    .btn-d{background:transparent;color:var(--red);border:1px solid var(--red)}.btn-d:hover{background:var(--red);color:#fff}
+    .btn-sm{padding:5px 12px;font-size:10px}
+    .btn-ico{width:28px;height:28px;padding:0;justify-content:center;border-radius:6px}
+    .btn-full{width:100%;justify-content:center}
+
+    /* ─ App ─ */
+    #app{display:none;min-height:100vh;flex-direction:column}
+    #app.on{display:flex}
+    #anav{height:48px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;position:sticky;top:0;background:var(--bg);z-index:50}
+    .alogo{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase}
+    .alogo span{color:var(--acc)}
+    .anav-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .save-st{font-family:var(--mono);font-size:10px;color:var(--fg-m);letter-spacing:.06em}
+    .save-st.ok{color:var(--green)}.save-st.err{color:var(--red)}
+    .prev-link{font-family:var(--mono);font-size:10px;color:var(--acc);text-decoration:none;letter-spacing:.06em}
+    .prev-link:hover{text-decoration:underline}
+
+    /* ─ Layout ─ */
+    #abody{display:flex;flex:1;min-height:0}
+    #sidebar{width:200px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:12px 0;position:sticky;top:48px;height:calc(100vh - 48px)}
+    #content{flex:1;min-width:0;overflow-y:auto;padding:28px 28px 60px}
+
+    /* Sidebar */
+    .ss{padding:0 14px;margin:14px 0 4px;font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--fg-f)}
+    .si{display:flex;align-items:center;gap:8px;padding:7px 14px;font-family:var(--mono);font-size:11px;color:var(--fg-m);cursor:pointer;transition:background .15s,color .15s}
+    .si:hover{background:rgba(255,255,255,.04);color:var(--fg)}
+    .si.on{background:rgba(49,196,223,.08);color:var(--acc)}
+    .si-ic{font-size:11px;width:15px;text-align:center}
+
+    /* Mobile sidebar toggle */
+    .menu-btn{display:none;width:32px;height:32px;border:1px solid var(--border);border-radius:6px;background:transparent;cursor:pointer;align-items:center;justify-content:center;font-size:16px;color:var(--fg)}
+    @media(max-width:700px){
+      .menu-btn{display:flex}
+      #sidebar{position:fixed;top:48px;left:0;bottom:0;z-index:40;background:var(--bg);transform:translateX(-100%);transition:transform .25s}
+      #sidebar.open{transform:translateX(0)}
+      #content{padding:20px 16px 60px}
+      .grid-2{grid-template-columns:1fr!important}
+      .grid-3{grid-template-columns:1fr!important}
+    }
+
+    /* ─ Pages ─ */
+    .page{display:none}.page.on{display:block}
+    .ptitle{font-size:1.3rem;font-weight:700;margin-bottom:3px}
+    .psub{font-family:var(--mono);font-size:11px;color:var(--fg-m);margin-bottom:24px}
+
+    /* Cards */
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:22px;margin-bottom:14px}
+    .ctitle{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-m);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+
+    /* Grids */
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+    /* Tags */
+    .tag-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+    .tag{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;padding:4px 10px;background:var(--bg);border:1px solid var(--bl);border-radius:100px;color:var(--fg)}
+    .tag-x{cursor:pointer;color:var(--fg-m);transition:color .15s}.tag-x:hover{color:var(--red)}
+
+    /* List items */
+    .li{background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden}
+    .li-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;cursor:pointer;transition:background .15s;gap:10px}
+    .li-hdr:hover{background:rgba(255,255,255,.03)}
+    .li-hl{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+    .li-n{font-family:var(--mono);font-size:9px;color:var(--fg-f);width:16px;flex-shrink:0}
+    .li-t{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .li-s{font-family:var(--mono);font-size:10px;color:var(--fg-m);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .li-acts{display:flex;align-items:center;gap:5px;flex-shrink:0}
+    .li-body{display:none;padding:0 14px 14px;border-top:1px solid var(--border)}
+    .li-body.open{display:block}
+    .li-body .fg{margin-top:12px;margin-bottom:0}
+
+    /* Bullet editor */
+    .bl-list{margin-bottom:6px}
+    .bl-row{display:flex;gap:6px;align-items:center;margin-bottom:5px}
+    .bl-row .fi{flex:1}
+
+    /* Media editor */
+    .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:12px}
+    .mcard{background:var(--bg);border:1px solid var(--border);border-radius:7px;overflow:hidden}
+    .mthumb{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+    .mthumb-ph{width:100%;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--fg-f)}
+    .mcard-acts{display:flex;gap:4px;padding:5px 7px;border-top:1px solid var(--border);align-items:center}
+    .mlabel{flex:1;background:transparent;border:none;outline:none;font-family:var(--mono);font-size:9px;color:var(--fg-m);min-width:0}
+    .mcard select{width:100%;background:var(--bg);border:none;border-top:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--fg-m);padding:4px 7px;outline:none;cursor:pointer}
+
+    /* Upload zone */
+    .upzone{border:1.5px dashed var(--bl);border-radius:8px;padding:22px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
+    .upzone:hover,.upzone.over{border-color:var(--acc);background:rgba(49,196,223,.04)}
+    .upzone p{font-family:var(--mono);font-size:11px;color:var(--fg-m);margin-top:6px;line-height:1.6}
+    .upzone input{display:none}
+
+    /* Logo uploader */
+    .logo-preview-wrap{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;min-height:60px}
+    .logo-preview-img{max-height:40px;max-width:200px;object-fit:contain;display:block}
+    .logo-preview-text{font-family:var(--mono);font-size:11px;color:var(--fg-m)}
+    .ratio-btns{display:flex;gap:6px;flex-wrap:wrap}
+    .ratio-btn{font-family:var(--mono);font-size:10px;padding:5px 13px;border-radius:6px;border:1px solid var(--bl);background:transparent;color:var(--fg-m);cursor:pointer;transition:all .2s}
+    .ratio-btn:hover{border-color:var(--fg-m)}
+    .ratio-btn.sel{border-color:var(--acc);color:var(--acc);background:rgba(49,196,223,.08)}
+
+    /* Toggle */
+    .tog-wrap{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none}
+    .tog{width:34px;height:18px;background:var(--bl);border-radius:18px;position:relative;transition:background .2s;flex-shrink:0}
+    .tog::after{content:'';position:absolute;width:12px;height:12px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .2s}
+    .tog.on{background:var(--acc)}.tog.on::after{left:19px}
+    .tog-lbl{font-family:var(--mono);font-size:11px;color:var(--fg-m)}
+
+    /* Spotify */
+    .sp-prev{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--fg-m)}
+    .sp-ok{color:var(--green)}.sp-no{color:var(--red)}
+
+    /* Toast */
+    #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--panel);border:1px solid var(--bl);border-radius:8px;padding:10px 20px;font-family:var(--mono);font-size:11px;color:var(--fg);transition:transform .3s;z-index:9999;white-space:nowrap;pointer-events:none}
+    #toast.show{transform:translateX(-50%) translateY(0)}
+
+    /* Warn box */
+    .warn{background:rgba(255,200,50,.07);border:1px solid rgba(255,200,50,.2);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:10px;color:#ffc832;margin-bottom:14px;line-height:1.7}
+
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-thumb{background:var(--bl);border-radius:2px}
+
+    /* ─ Drive Picker Modal ─ */
+    #gdrive-modal{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);padding:16px}
+    #gdrive-modal.open{display:flex}
+    .gdrive-box{width:100%;max-width:520px;background:var(--panel);border:1px solid var(--bl);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;max-height:90vh}
+    .gdrive-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--bl)}
+    .gdrive-head-title{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--acc)}
+    .gdrive-body{padding:20px;overflow-y:auto;flex:1}
+    .gdrive-tabs{display:flex;gap:6px;margin-bottom:18px}
+    .gdrive-tab{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;padding:6px 14px;border-radius:6px;border:1px solid var(--bl);background:transparent;color:var(--fg-m);cursor:pointer;transition:all .2s}
+    .gdrive-tab.active{background:var(--acc);color:#000;border-color:var(--acc)}
+    .gdrive-tab-panel{display:none}
+    .gdrive-tab-panel.active{display:block}
+    .gdrive-convert-result{margin-top:12px;padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--bl);display:none}
+    .gdrive-convert-result.show{display:block}
+    .gdrive-img-preview{width:100%;max-height:180px;object-fit:contain;border-radius:6px;margin-bottom:10px;display:none}
+    .gdrive-img-preview.show{display:block}
+    .gdrive-converted-url{font-family:var(--mono);font-size:10px;color:var(--acc);word-break:break-all;line-height:1.6}
+    .gdrive-hint{font-family:var(--mono);font-size:10px;color:var(--fg-f);line-height:1.7;margin-bottom:14px}
+    .gdrive-hint a{color:var(--acc);text-decoration:none}
+    .gdrive-hint b{color:var(--fg-m)}
+    .gdrive-picker-btn-wrap{text-align:center;padding:20px 0}
+    .gdrive-step{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;padding:12px;background:var(--bg);border-radius:8px}
+    .gdrive-step-num{width:22px;height:22px;border-radius:50%;background:var(--acc);color:#000;font-family:var(--mono);font-size:10px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .gdrive-step-text{font-family:var(--mono);font-size:11px;color:var(--fg-m);line-height:1.6}
+    .gdrive-step-text b{color:var(--fg)}
+  </style>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="lbox">
+    <div class="lbox-logo">GS Portfolio <span>Admin</span></div>
+    <div class="lbox-title">Welcome back</div>
+    <div class="lbox-sub">Enter your admin password to continue</div>
+    <div class="lerr" id="lerr">Incorrect password. Try again.</div>
+    <div class="fg"><label class="fl">Password</label><input class="fi" id="pw-in" type="password" placeholder="••••••••" autocomplete="current-password"/></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;cursor:pointer" onclick="document.getElementById('keep-in').click()">
+      <div style="position:relative;width:18px;height:18px;flex-shrink:0">
+        <input type="checkbox" id="keep-in" style="position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:1"/>
+        <div id="keep-box" style="width:18px;height:18px;border:1.5px solid var(--bl);border-radius:4px;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:all .2s;pointer-events:none"></div>
+      </div>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--fg-m);user-select:none">Keep me signed in</span>
+    </div>
+    <button class="btn btn-p btn-full" onclick="doLogin()">Sign In →</button>
+    <p style="font-family:var(--mono);font-size:10px;color:var(--fg-f);margin-top:14px;text-align:center">Default: <code style="color:var(--acc)">admin2025</code></p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div id="anav">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="alogo">GS <span>Admin</span></div>
+    </div>
+    <div class="anav-r">
+      <span class="save-st" id="save-st">All changes saved</span>
+      <a href="/" target="_blank" class="prev-link">↗ Preview</a>
+      <button class="btn btn-s btn-sm" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+  <div id="abody">
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="ss">Content</div>
+      <div class="si on" onclick="nav('branding',this)"><span class="si-ic">◉</span>Branding &amp; Logo</div>
+      <div class="si" onclick="nav('bio',this)"><span class="si-ic">✎</span>Identity</div>
+      <div class="si" onclick="nav('about',this)"><span class="si-ic">◐</span>Bio &amp; About</div>
+      <div class="si" onclick="nav('skills',this)"><span class="si-ic">◈</span>Skills</div>
+      <div class="si" onclick="nav('experience',this)"><span class="si-ic">◧</span>Experience</div>
+      <div class="si" onclick="nav('awards',this)"><span class="si-ic">★</span>Awards</div>
+      <div class="ss">Portfolio</div>
+      <div class="si" onclick="nav('categories',this)"><span class="si-ic">⊞</span>Categories</div>
+      <div class="si" onclick="nav('projects',this)"><span class="si-ic">▦</span>Projects</div>
+      <div class="ss">Pages</div>
+      <div class="si" onclick="nav('overview-ed',this)"><span class="si-ic">⊡</span>Overview Page</div>
+      <div class="si" onclick="nav('testimonials',this)"><span class="si-ic">❝</span>Testimonials</div>
+      <div class="si" onclick="nav('client-logos',this)"><span class="si-ic">◈</span>Client Logos</div>
+      <div class="si" onclick="nav('toolstack',this)"><span class="si-ic">⌘</span>Tool Stack</div>
+      <div class="si" onclick="nav('jams',this)"><span class="si-ic">♪</span>Favourite Jams</div>
+      <div class="ss">Settings</div>
+      <div class="si" onclick="nav('music',this)"><span class="si-ic">♫</span>Music</div>
+      <div class="si" onclick="nav('media-storage',this)"><span class="si-ic">☁</span>Media Storage</div>
+      <div class="si" onclick="nav('social',this)"><span class="si-ic">◎</span>Social Preview</div>
+      <div class="si" onclick="nav('password',this)"><span class="si-ic">⚿</span>Password</div>
+      <div class="si" onclick="nav('reset',this)"><span class="si-ic">↺</span>Reset Data</div>
+    </div>
+
+    <!-- Content -->
+    <div id="content">
+
+      <!-- BRANDING & LOGO -->
+      <div class="page on" id="page-branding">
+        <div class="ptitle">Branding &amp; Logo</div>
+        <div class="psub">What appears in the top-left corner of your portfolio.</div>
+        <div class="card">
+          <div class="ctitle">Logo Type</div>
+          <div class="fg">
+            <label class="fl">Display as</label>
+            <select class="fi" id="logo-type" style="max-width:220px" onchange="onLogoTypeChange()">
+              <option value="text">Text — your name from Identity</option>
+              <option value="custom">Custom text — type your own</option>
+              <option value="image">Image — upload a logo</option>
+              <option value="both">Both — image + custom text</option>
+            </select>
+          </div>
+          <div id="logo-custom-section" style="display:none;margin-bottom:14px">
+            <label class="fl">Custom Logo Text</label>
+            <input class="fi" id="logo-custom-text" type="text" placeholder="e.g. MADE by Goutham" oninput="updateLogoPreview()"/>
+            <p style="font-family:var(--mono);font-size:10px;color:var(--fg-m);margin-top:5px">This text appears in the nav bar instead of your name.</p>
+          </div>
+          <div id="logo-image-section" style="display:none">
+            <div class="fg">
+              <label class="fl">Logo Image</label>
+              <div class="logo-preview-wrap" id="logo-preview-wrap">
+                <span class="logo-preview-text" id="logo-preview-msg">No logo uploaded yet.</span>
+              </div>
+              <div class="upzone" id="logo-upzone">
+                <div style="font-size:24px">⊕</div>
+                <p>Drag &amp; drop your logo here, or click to upload<br/>PNG, SVG, WebP recommended</p>
+                <input type="file" id="logo-file" accept="image/*"/>
+              </div>
+              <p style="font-family:var(--mono);font-size:10px;color:var(--fg-f);margin-top:8px">Or paste a logo URL:</p>
+              <div style="display:flex;gap:8px;margin-top:6px">
+                <input class="fi" id="logo-url-inp" type="url" placeholder="https://..." style="flex:1"/>
+                <button class="btn btn-s btn-sm" onclick="applyLogoUrl()">Use URL</button>
+              </div>
+            </div>
+            <div class="fg">
+              <label class="fl">Logo Ratio / Size</label>
+              <p style="font-family:var(--mono);font-size:10px;color:var(--fg-m);margin-bottom:10px;line-height:1.6">Choose how your logo is displayed in the nav bar. Preview updates live.</p>
+              <div class="ratio-btns" id="ratio-btns">
+                <button class="ratio-btn sel" data-ratio="wide" onclick="setRatio('wide',this)">Wide — full horizontal logo</button>
+                <button class="ratio-btn" data-ratio="sq" onclick="setRatio('sq',this)">Square — icon mark (1:1)</button>
+                <button class="ratio-btn" data-ratio="tall" onclick="setRatio('tall',this)">Tall — stacked/portrait mark</button>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-p" onclick="saveBranding()">Save Branding</button>
+        </div>
+        <div class="card">
+          <div class="ctitle">Live Preview</div>
+          <div id="logo-live-preview" style="padding:12px 20px;background:var(--bg);border-radius:6px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border)">
+            <span id="llp-content" style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.07em;color:var(--fg)">Goutham Shibulal</span>
+            <div style="display:flex;gap:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--fg-m)">
+              <span>Feed</span><span>Overview</span><span>Contact</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- IDENTITY (META) -->
+      <div class="page" id="page-bio">
+        <div class="ptitle">Identity</div>
+        <div class="psub">Your name, role, and contact details shown in the portfolio.</div>
+        <div class="card">
+          <div class="ctitle">Personal Info</div>
+          <div class="grid-2">
+            <div class="fg"><label class="fl">Full Name</label><input class="fi" id="meta-name" type="text"/></div>
+            <div class="fg"><label class="fl">Role / Title</label><input class="fi" id="meta-role" type="text"/></div>
+            <div class="fg"><label class="fl">Email</label><input class="fi" id="meta-email" type="email"/></div>
+            <div class="fg"><label class="fl">Phone</label><input class="fi" id="meta-phone" type="tel"/></div>
+            <div class="fg"><label class="fl">LinkedIn <span style="color:var(--fg-f);text-transform:none;letter-spacing:0">— only the username is shown, hyperlinked</span></label><input class="fi" id="meta-linkedin" type="url" placeholder="https://linkedin.com/in/yourname"/><p style="font-family:var(--mono);font-size:10px;color:var(--fg-m);margin-top:4px">Paste full URL — visitors will see just your username as a clickable link.</p></div>
+            <div class="fg"><label class="fl">Location</label><input class="fi" id="meta-location" type="text"/></div>
+          </div>
+          <button class="btn btn-p" onclick="saveMeta()">Save Identity</button>
+        </div>
+      </div>
+
+      <!-- BIO -->
+      <div class="page" id="page-about">
+        <div class="ptitle">Bio &amp; About</div>
+        <div class="psub">Each paragraph appears separately on the left panel.</div>
+        <div class="card">
+          <div class="ctitle">Bio Paragraphs <button class="btn btn-s btn-sm" onclick="addBio()">+ Add Paragraph</button></div>
+          <div style="margin-bottom:12px;padding:10px 14px;background:var(--bg);border-radius:8px;border-left:3px solid var(--acc)">
+            <p style="font-family:var(--mono);font-size:10px;color:var(--fg-m);line-height:1.7">
+              <b style="color:var(--fg)">Bold text:</b> wrap words in <code style="color:var(--acc)">**bold**</code> — e.g. <code style="color:var(--acc)">**MADE by Goutham**</code><br/>
+              <b style="color:var(--fg)">Highlight:</b> wrap in <code style="color:var(--acc)">::text::</code> — e.g. <code style="color:var(--acc)">::Marketing • Advertising • Design::</code>
+            </p>
+          </div>
+          <div id="bio-list"></div>
+          <button class="btn btn-p" style="margin-top:8px" onclick="saveBio()">Save Bio</button>
+        </div>
+      </div>
+
+      <!-- SKILLS -->
+      <div class="page" id="page-skills">
+        <div class="ptitle">Skills &amp; Disciplines</div>
+        <div class="psub">Shown as pill tags on the left panel.</div>
+        <div class="card">
+          <div class="ctitle">Skills</div>
+          <div class="tag-wrap" id="skills-list"></div>
+          <div style="display:flex;gap:8px">
+            <input class="fi" id="skill-new" type="text" placeholder="New skill..." style="max-width:200px"/>
+            <button class="btn btn-s btn-sm" onclick="addSkill()">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPERIENCE -->
+      <div class="page" id="page-experience">
+        <div class="ptitle">Experience</div>
+        <div class="psub">Work history shown on the left panel.</div>
+        <div class="card">
+          <div class="ctitle">Roles
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-s btn-sm" id="exp-reorder-btn" onclick="toggleExpReorder()">⇅ Reorder</button>
+              <button class="btn btn-s btn-sm" onclick="addExp()">+ Add Role</button>
+            </div>
+          </div>
+          <div id="exp-reorder-hint" style="display:none;font-family:var(--mono);font-size:10px;color:var(--acc);margin-bottom:10px;padding:8px 12px;background:rgba(49,196,223,.08);border:1px solid rgba(49,196,223,.2);border-radius:6px">⠿ Drag roles to reorder. Click <b>Reorder</b> again to save.</div>
+          <div id="exp-list"></div>
+        </div>
+        <div class="card">
+          <div class="ctitle">Education <button class="btn btn-s btn-sm" onclick="addEdu()">+ Add</button></div>
+          <div id="edu-list"></div>
+        </div>
+      </div>
+
+      <!-- AWARDS -->
+      <div class="page" id="page-awards">
+        <div class="ptitle">Awards &amp; Recognition</div>
+        <div class="psub">Shown in the Recognition section. Toggle visibility per award.</div>
+        <div class="card">
+          <div class="ctitle">Awards <button class="btn btn-s btn-sm" onclick="addAward()">+ Add Award</button></div>
+          <div id="awards-list"></div>
+        </div>
+      </div>
+
+      <!-- CATEGORIES -->
+      <div class="page" id="page-categories">
+        <div class="ptitle">Portfolio Categories</div>
+        <div class="psub">The folder tabs on the right panel.</div>
+        <div class="card">
+          <div class="ctitle">Categories <button class="btn btn-s btn-sm" onclick="addCat()">+ Add Category</button></div>
+          <div id="cat-list"></div>
+        </div>
+      </div>
+
+      <!-- PROJECTS -->
+      <div class="page" id="page-projects">
+        <div class="ptitle">Projects</div>
+        <div class="psub">Manage projects shown in each category tab.</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <select class="fi" id="proj-filter" style="max-width:200px" onchange="renderProjects()">
+              <option value="">All Categories</option>
+            </select>
+            <button class="btn btn-s btn-sm" id="reorder-toggle-btn" onclick="toggleReorderMode()" style="gap:5px">⇅ Reorder</button>
+          </div>
+          <button class="btn btn-p btn-sm" onclick="openNew()">+ New Project</button>
+        </div>
+        <div id="reorder-hint" style="display:none;font-family:var(--mono);font-size:10px;color:var(--acc);margin-bottom:10px;padding:8px 12px;background:rgba(49,196,223,.08);border:1px solid rgba(49,196,223,.2);border-radius:6px">⠿ Drag the handle on the left to reorder projects. Click <b>Reorder</b> again to save &amp; exit.</div>
+        <div id="projects-list"></div>
+      </div>
+
+      <!-- PROJECT EDITOR -->
+      <div class="page" id="page-proj-ed">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap">
+          <button class="btn btn-s btn-sm" onclick="nav('projects',document.querySelectorAll('.si')[8])">← Back</button>
+          <div>
+            <div class="ptitle" id="pe-title" style="margin-bottom:0">Edit Project</div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--fg-m)" id="pe-sub">Update details and media</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ctitle">Details</div>
+          <div class="grid-2">
+            <div class="fg"><label class="fl">Client / Project Name</label><input class="fi" id="pe-client"/></div>
+            <div class="fg"><label class="fl">Category</label><select class="fi" id="pe-cat"></select></div>
+          </div>
+          <div class="grid-2">
+            <div class="fg"><label class="fl">Location <span style="color:var(--fg-f);text-transform:none;letter-spacing:0">(optional)</span></label><input class="fi" id="pe-location" placeholder="e.g. Florence, Italy"/></div>
+            <div class="fg" style="display:flex;flex-direction:column;justify-content:flex-end">
+              <label class="fl">Visibility</label>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg);border:1px solid var(--bl);border-radius:6px;cursor:pointer" onclick="toggleProjVisible()">
+                <div id="pe-visible-dot" style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+                <span id="pe-visible-label" style="font-family:var(--mono);font-size:12px">Visible — shown on portfolio</span>
+              </div>
+            </div>
+          </div>
+          <div class="fg"><label class="fl">Services (2 lines, shown in mono)</label><textarea class="fi" id="pe-svc" rows="2" placeholder="Line 1&#10;Line 2 · Detail"></textarea></div>
+          <div class="fg"><label class="fl">Description</label><textarea class="fi" id="pe-desc" rows="3"></textarea></div>
+          <div class="fg"><label class="fl">Grid Layout</label>
+            <select class="fi" id="pe-layout" style="max-width:220px">
+              <option value="2col">2 columns (equal)</option>
+              <option value="3col">3 columns (equal)</option>
+              <option value="1-2">Left tall + right stack</option>
+              <option value="2-1">Left stack + right tall</option>
+            </select>
+          </div>
+          <div class="fg" style="margin-top:4px">
+            <label class="fl">Interactive Embed URL <span style="color:var(--fg-f);text-transform:none;letter-spacing:0">(optional — shown in expanded view)</span></label>
+            <input class="fi" id="pe-iframe" type="url" placeholder="Figma prototype URL, Webflow site, CodePen, Framer…"/>
+            <div style="margin-top:8px;padding:10px 14px;background:var(--bg);border-radius:8px;border-left:3px solid var(--acc)">
+              <p style="font-family:var(--mono);font-size:10px;color:var(--fg-m);line-height:1.7">
+                <b style="color:var(--fg)">Figma links</b> — paste any Figma URL (proto, design, file). Figma blocks iframes on external sites, so your portfolio will show a <b style="color:var(--acc)">beautiful preview card</b> with an "Open in Figma" button instead. Your visitors click it to view the live prototype directly in Figma.<br/>
+                <b style="color:var(--fg)">Webflow / Framer / CodePen</b> — these embed as live interactive iframes.<br/>
+                <b style="color:var(--fg)">Google Drive previews</b> — use the /preview link for embeddable docs.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ctitle">Media <span style="font-size:10px;color:var(--fg-f);font-weight:400;text-transform:none;letter-spacing:0">Images, GIFs, videos (MP4/WebM)</span></div>
+          <div class="mgrid" id="pe-media"></div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:stretch">
+            <div class="upzone" id="pe-upzone" style="margin:0">
+              <div style="font-size:22px" id="upzone-icon">⊕</div>
+              <p id="upzone-label">Drag &amp; drop or click<br/><span style="color:var(--acc);font-size:11px" id="upzone-sub">Checking storage…</span></p>
+              <input type="file" id="pe-files" accept="image/*" multiple/>
+            </div>
+            <button class="btn btn-s" onclick="openDrivePicker()" style="flex-direction:column;gap:6px;padding:16px 14px;height:auto;border:1px dashed var(--bl);background:transparent;border-radius:10px;min-width:110px">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4.5 19.5L8 13.5H20L16.5 19.5H4.5Z" fill="#4285F4" opacity=".9"/><path d="M2 17L8 6.5L11 12L8 17H2Z" fill="#34A853" opacity=".9"/><path d="M8 6.5H16L22 17H14L11 12L8 6.5Z" fill="#FBBC04" opacity=".9"/></svg>
+              <span style="font-size:9px;letter-spacing:.06em;color:var(--fg-m);line-height:1.4;text-align:center">PICK FROM<br/>GOOGLE DRIVE</span>
+            </button>
+          </div>
+          <div id="pe-upload-status" style="display:none;font-family:var(--mono);font-size:11px;padding:10px 14px;background:var(--panel);border-radius:8px;border:1px solid var(--bl);margin-top:8px;line-height:2"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+            <input class="fi" id="pe-url" type="url" placeholder="Or paste image URL or Google Drive share link…" style="flex:1"/>
+            <button class="btn btn-s btn-sm" onclick="addMediaUrlSmart()">Add</button>
+          </div>
+          <p style="font-family:var(--mono);font-size:10px;color:var(--fg-f);margin-top:8px;line-height:1.7">For videos — upload to <a href="https://cloudinary.com" target="_blank" style="color:var(--acc);text-decoration:none">Cloudinary.com</a> (free) then paste the URL above.</p>
+        </div>
+
+        <!-- GOOGLE DRIVE PICKER MODAL -->
+        <div id="gdrive-modal">
+          <div class="gdrive-box">
+            <div class="gdrive-head">
+              <span class="gdrive-head-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:6px"><path d="M4.5 19.5L8 13.5H20L16.5 19.5H4.5Z" fill="#4285F4"/><path d="M2 17L8 6.5L11 12L8 17H2Z" fill="#34A853"/><path d="M8 6.5H16L22 17H14L11 12L8 6.5Z" fill="#FBBC04"/></svg>
+                Google Drive Images
+              </span>
+              <button class="btn btn-s btn-sm btn-ico" onclick="closeDrivePicker()">✕</button>
+            </div>
+            <div class="gdrive-body">
+              <div class="gdrive-tabs">
+                <button class="gdrive-tab active" onclick="switchDriveTab('paste')">Paste Share Link</button>
+                <button class="gdrive-tab" onclick="switchDriveTab('how')">How to Share</button>
+              </div>
+
+              <!-- TAB: PASTE -->
+              <div class="gdrive-tab-panel active" id="dtab-paste">
+                <p class="gdrive-hint">Paste a Google Drive share link — it will be auto-converted to a working image URL.</p>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input class="fi" id="gdrive-link-inp" type="url" placeholder="https://drive.google.com/file/d/…/view" style="flex:1"/>
+                  <button class="btn btn-p btn-sm" onclick="convertDriveLink()">Convert</button>
+                </div>
+                <div class="gdrive-convert-result" id="gdrive-result">
+                  <img class="gdrive-img-preview" id="gdrive-preview" src="" alt="preview"/>
+                  <div class="gdrive-converted-url" id="gdrive-converted-url"></div>
+                  <div style="display:flex;gap:8px;margin-top:10px">
+                    <button class="btn btn-p btn-sm" onclick="addDriveImage()">✓ Add to Project</button>
+                    <button class="btn btn-s btn-sm" onclick="copyDriveUrl()">Copy URL</button>
+                  </div>
+                </div>
+                <div id="gdrive-error" style="display:none;font-family:var(--mono);font-size:11px;color:var(--red);margin-top:10px;line-height:1.6"></div>
+              </div>
+
+              <!-- TAB: HOW TO -->
+              <div class="gdrive-tab-panel" id="dtab-how">
+                <div class="gdrive-step">
+                  <div class="gdrive-step-num">1</div>
+                  <div class="gdrive-step-text">Open <a href="https://drive.google.com" target="_blank" style="color:var(--acc)">Google Drive</a> and find your image.</div>
+                </div>
+                <div class="gdrive-step">
+                  <div class="gdrive-step-num">2</div>
+                  <div class="gdrive-step-text"><b>Right-click</b> the image → <b>Share</b> → change access to <b>"Anyone with the link"</b></div>
+                </div>
+                <div class="gdrive-step">
+                  <div class="gdrive-step-num">3</div>
+                  <div class="gdrive-step-text">Click <b>Copy link</b> — it looks like:<br/><span style="color:var(--acc)">drive.google.com/file/d/<b>FILE_ID</b>/view</span></div>
+                </div>
+                <div class="gdrive-step">
+                  <div class="gdrive-step-num">4</div>
+                  <div class="gdrive-step-text">Paste it in the <b>Paste Share Link</b> tab → hit Convert → Add to Project.</div>
+                </div>
+                <div style="margin-top:6px;padding:10px 14px;background:var(--bg);border-radius:8px;border-left:3px solid var(--acc)">
+                  <p style="font-family:var(--mono);font-size:10px;color:var(--fg-m);line-height:1.7">💡 <b style="color:var(--fg)">Tip:</b> You can also paste Drive links directly in the URL field on the Media card — it auto-converts them too.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-p" onclick="saveProject()">Save Project</button>
+          <button class="btn btn-d" onclick="delProject()">Delete Project</button>
+        </div>
+      </div>
+
+      <!-- MUSIC -->
+      <div class="page" id="page-music">
+        <div class="ptitle">Music</div>
+        <div class="psub">A Spotify track that plays when visitors open the portfolio.</div>
+        <div class="card">
+          <div class="ctitle">Spotify Track</div>
+          <div class="fg">
+            <label class="fl">Spotify Track URL</label>
+            <input class="fi" id="sp-url" type="url" placeholder="https://open.spotify.com/track/..."/>
+            <p style="font-family:var(--mono);font-size:10px;color:var(--fg-m);margin-top:6px">Spotify → right-click any track → Share → Copy link</p>
+          </div>
+          <div class="sp-prev" id="sp-prev">No track set.</div>
+          <div class="tog-wrap" style="margin:14px 0" onclick="toggleSpAuto()">
+            <div class="tog on" id="sp-tog"></div>
+            <span class="tog-lbl">Attempt autoplay on open</span>
+          </div>
+          <div class="warn">⚠ Browsers block audio autoplay by default. The Spotify embed shows on load; the visitor can click play. Full autoplay works after the user has interacted with your site.</div>
+          <button class="btn btn-p" onclick="saveMusic()">Save Music Settings</button>
+        </div>
+        <div class="card">
+          <div class="ctitle">Embed Preview</div>
+          <div id="sp-embed"></div>
+        </div>
+      </div>
+
+      <!-- MEDIA STORAGE -->
+      <div class="page" id="page-media-storage">
+        <div class="ptitle">Media Storage</div>
+        <div class="psub">Connect ImgBB to upload images directly from the admin — no copy-pasting, no sharing settings.</div>
+        <div class="card" style="max-width:480px">
+          <div class="ctitle">ImgBB API Key</div>
+          <p style="font-family:var(--mono);font-size:11px;color:var(--fg-m);line-height:1.8;margin-bottom:16px">
+            ImgBB is free image hosting with a simple API. Once connected, every image you drag into the Media zone uploads automatically and saves as a permanent URL.
+          </p>
+          <div style="display:flex;flex-direction:column;gap:10px;padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--bl);margin-bottom:18px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:28px;height:28px;border-radius:50%;background:rgba(49,196,223,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono);font-size:11px;color:var(--acc)">1</div>
+              <span style="font-family:var(--mono);font-size:11px;color:var(--fg-m)">Go to <a href="https://api.imgbb.com" target="_blank" style="color:var(--acc);text-decoration:none">api.imgbb.com</a> and sign up free</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:28px;height:28px;border-radius:50%;background:rgba(49,196,223,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono);font-size:11px;color:var(--acc)">2</div>
+              <span style="font-family:var(--mono);font-size:11px;color:var(--fg-m)">Click <b style="color:var(--fg)">Get API Key</b> — it's instant, no card needed</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:28px;height:28px;border-radius:50%;background:rgba(49,196,223,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono);font-size:11px;color:var(--acc)">3</div>
+              <span style="font-family:var(--mono);font-size:11px;color:var(--fg-m)">Paste it below and save</span>
+            </div>
+          </div>
+          <div class="fg">
+            <label class="fl">API Key</label>
+            <div style="display:flex;gap:8px">
+              <input class="fi" id="imgbb-key-inp" type="text" placeholder="Paste your ImgBB API key here…" style="flex:1;font-family:var(--mono)"/>
+              <button class="btn btn-s btn-sm btn-ico" id="imgbb-toggle-vis" onclick="toggleImgbbVis()" title="Show/hide key" style="flex-shrink:0">👁</button>
+            </div>
+          </div>
+          <div id="imgbb-status" style="font-family:var(--mono);font-size:11px;margin-bottom:14px;min-height:18px"></div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-p" onclick="saveImgbbKey()">Save API Key</button>
+            <button class="btn btn-s" onclick="testImgbbKey()">Test Connection</button>
+          </div>
+        </div>
+        <div class="card" style="max-width:480px">
+          <div class="ctitle">How it works</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px">
+            <div style="padding:14px;background:var(--bg);border-radius:8px;border:1px solid var(--bl)">
+              <div style="font-family:var(--mono);font-size:10px;color:var(--red);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Before</div>
+              <div style="font-family:var(--mono);font-size:11px;color:var(--fg-m);line-height:1.7">Drag image → stored as base64 → fills localStorage → save fails ❌</div>
+            </div>
+            <div style="padding:14px;background:var(--bg);border-radius:8px;border:1px solid var(--bl)">
+              <div style="font-family:var(--mono);font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">After</div>
+              <div style="font-family:var(--mono);font-size:11px;color:var(--fg-m);line-height:1.7">Drag image → uploads to ImgBB → saves as URL → no storage limit ✅</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASSWORD -->
+      <div class="page" id="page-password">
+        <div class="ptitle">Change Password</div>
+        <div class="psub">Update your admin login password.</div>
+        <div class="card" style="max-width:380px">
+          <div class="fg"><label class="fl">Current Password</label><input class="fi" id="pw-cur" type="password"/></div>
+          <div class="fg"><label class="fl">New Password</label><input class="fi" id="pw-new" type="password"/></div>
+          <div class="fg"><label class="fl">Confirm New Password</label><input class="fi" id="pw-conf" type="password"/></div>
+          <div class="lerr" id="pw-err" style="margin-bottom:10px"></div>
+          <button class="btn btn-p" onclick="changePw()">Update Password</button>
+        </div>
+      </div>
+
+      <!-- RESET -->
+      <div class="page" id="page-reset">
+        <div class="ptitle">Reset Data</div>
+        <div class="psub">Restore all portfolio content to default values.</div>
+        <div class="card" style="max-width:420px">
+          <div class="ctitle">Storage Usage</div>
+          <div id="storage-meter" style="margin-bottom:12px"></div>
+          <p style="font-family:var(--mono);font-size:10px;color:var(--fg-m);line-height:1.6">If storage is full, remove uploaded images from projects and use image URLs (Imgur, Cloudinary, etc.) instead.</p>
+        </div>
+        <div class="card" style="max-width:420px;border-color:rgba(224,80,80,.3)">
+          <div class="ctitle" style="color:var(--red)">⚠ Danger Zone</div>
+          <p style="font-size:13px;color:var(--fg-m);margin-bottom:18px;line-height:1.7">Resetting will permanently delete all your customizations including media URLs, projects, bio, and music settings. Cannot be undone.</p>
+          <button class="btn btn-d" onclick="doReset()">Reset to Default Data</button>
+        </div>
+      </div>
+
+      <!-- OVERVIEW PAGE EDITOR -->
+      <div class="page" id="page-overview-ed">
+        <div class="ptitle">Overview Page</div>
+        <div class="psub">Edit all content on your Overview page.</div>
+
+        <div class="card">
+          <div class="ctitle">Hero Section</div>
+          <div class="fg"><label class="fl">Headline (wrap word in &lt;em&gt; for italic)</label><input class="fi" id="ov-headline" type="text" placeholder="Design that is &lt;em&gt;desired before bought&lt;/em&gt;"/></div>
+          <div class="fg"><label class="fl">Subheadline</label><textarea class="fi" id="ov-sub" rows="2" placeholder="A short positioning statement..."></textarea></div>
+        </div>
+
+        <div class="card">
+          <div class="ctitle">Overview Bio <span style="font-size:10px;color:var(--fg-f);text-transform:none;font-weight:400;letter-spacing:0">— separate from your portfolio bio</span></div>
+          <p style="font-family:var(--mono);font-size:10px;color:var(--fg-m);margin-bottom:12px;line-height:1.6">This bio only appears on the Overview page. Leave empty to hide the section. Use <code style="color:var(--acc)">**bold**</code> and <code style="color:var(--acc)">::highlight::</code> for emphasis.</p>
+          <div id="ov-bio-list"></div>
+          <button class="btn btn-s btn-sm" style="margin-top:8px" onclick="addOvBio()">+ Add Paragraph</button>
+        </div>
+
+        <div class="card">
+          <div class="ctitle">Design Philosophy</div>
+          <div id="phil-list"></div>
+          <button class="btn btn-s btn-sm" style="margin-top:8px" onclick="addPhil()">+ Add Point</button>
+        </div>
+
+        <div class="card">
+          <div class="ctitle">Brands Worked With <span style="font-size:10px;color:var(--fg-f);text-transform:none;font-weight:400;letter-spacing:0">— text chips shown in About section</span></div>
+          <div class="tag-wrap" id="brands-list"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <input class="fi" id="brand-new" type="text" placeholder="Brand name..." style="max-width:200px"/>
+            <button class="btn btn-s btn-sm" onclick="addBrand()">Add</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ctitle">Client Logo Marquee <span style="font-size:10px;color:var(--fg-f);text-transform:none;font-weight:400;letter-spacing:0">— scrolling banner with logos</span></div>
+          <p style="font-family:var(--mono);font-size:10px;color:var(--fg-m);line-height:1.6;margin-bottom:14px">Paste a public image URL or upload a logo. Use white/dark PNG or SVG for best results.</p>
+          <div id="logos-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:12px"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <input class="fi" id="logo-url-inp" type="url" placeholder="https://logo-url.com/logo.png" style="flex:1;min-width:200px"/>
+            <input class="fi" id="logo-name-inp" type="text" placeholder="Brand name" style="max-width:140px"/>
+            <button class="btn btn-s btn-sm" onclick="addLogo()">Add URL</button>
+          </div>
+          <div style="margin-top:8px">
+            <label style="font-family:var(--mono);font-size:10px;color:var(--fg-m);display:block;margin-bottom:4px">Or upload logo file</label>
+            <div class="upzone" style="padding:12px" onclick="document.getElementById('logo-file').click()">
+              <p style="font-size:11px;margin:0">Click to upload logo image</p>
+              <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="handleLogoUpload(this)"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ctitle">Testimonials <span style="font-size:10px;color:var(--fg-f);text-transform:none;font-weight:400;letter-spacing:0">— shown as cards on overview</span></div>
+          <div id="testi-list"></div>
+          <button class="btn btn-s btn-sm" style="margin-top:8px" onclick="addTesti()">+ Add Testimonial</button>
+        </div>
+
+        <div class="card">
+          <div class="ctitle">Tool Stack <span style="font-size:10px;color:var(--fg-f);text-transform:none;font-weight:400;letter-spacing:0">— icons fetched automatically</span></div>
+          <p style="font-family:var(--mono);font-size:10px;color:var(--fg-m);line-height:1.6;margin-bottom:12px">Type the tool name — icons are auto-fetched from Simple Icons. Works for Figma, Notion, Webflow, Framer, Photoshop, Illustrator, VS Code, etc.</p>
+          <div class="tag-wrap" id="tools-list"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <input class="fi" id="tool-new" type="text" placeholder="e.g. Figma, Webflow, Notion..." style="max-width:220px"/>
+            <button class="btn btn-s btn-sm" onclick="addTool()">Add Tool</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ctitle">Favourite Jams <span style="font-size:10px;color:var(--fg-f);text-transform:none;font-weight:400;letter-spacing:0">— manage in the <a href="#" onclick="nav('jams',null);return false" style="color:var(--acc);text-decoration:none">Jams page ↗</a></span></div>
+          <p style="font-family:var(--mono);font-size:11px;color:var(--fg-m);line-height:1.6">Add Spotify &amp; Apple Music links via the Favourite Jams section in the left sidebar.</p>
+        </div>
+
+        <div class="card">
+          <div class="ctitle">CTA Buttons</div>
+          <div class="grid-2">
+            <div class="fg"><label class="fl">Primary Label</label><input class="fi" id="ov-cta1-label" type="text" placeholder="View Work ↗"/></div>
+            <div class="fg"><label class="fl">Primary URL</label><input class="fi" id="ov-cta1-url" type="text" placeholder="/index"/></div>
+            <div class="fg"><label class="fl">Secondary Label</label><input class="fi" id="ov-cta2-label" type="text" placeholder="Get in Touch"/></div>
+            <div class="fg"><label class="fl">Secondary URL</label><input class="fi" id="ov-cta2-url" type="text" placeholder="mailto:..."/></div>
+          </div>
+          <button class="btn btn-p" onclick="saveOverview()">Save Overview Page</button>
+        </div>
+
+        <div class="card">
+          <div class="ctitle">Live Preview <a href="/overview" target="_blank" style="font-family:var(--mono);font-size:10px;color:var(--acc);text-decoration:none;text-transform:none;letter-spacing:0;font-weight:400">↗ Open in new tab</a></div>
+          <iframe src="/overview" style="width:100%;height:480px;border:1px solid var(--border);border-radius:8px" id="ov-preview-frame"></iframe>
+        </div>
+      </div>
+
+      <!-- SOCIAL PREVIEW -->
+      <div class="page" id="page-social">
+        <div class="ptitle">Social Preview</div>
+        <div class="psub">Live embedded previews of your Instagram and Spotify presence.</div>
+        <div class="card">
+          <div class="ctitle">Instagram Feed</div>
+          <div class="fg">
+            <label class="fl">Instagram Username</label>
+            <div style="display:flex;gap:8px;margin-bottom:12px">
+              <input class="fi" id="ig-user" type="text" placeholder="yourusername" style="max-width:220px"/>
+              <button class="btn btn-s btn-sm" onclick="loadInstagram()">Preview</button>
+            </div>
+            <p style="font-family:var(--mono);font-size:10px;color:var(--fg-m);margin-bottom:14px;line-height:1.6">
+              ⚠ Instagram does not allow direct embedding due to their policies.<br>
+              Below options work publicly: use your Instagram profile link or a Beacons/Linktree embed.
+            </p>
+          </div>
+          <div id="ig-embed-wrap" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden;min-height:80px;display:flex;align-items:center;justify-content:center">
+            <span id="ig-placeholder" style="font-family:var(--mono);font-size:11px;color:var(--fg-f)">Enter username and click Preview</span>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <label class="fl" style="display:block;width:100%;margin-bottom:6px">Or paste any embeddable widget HTML / URL</label>
+            <textarea class="fi" id="ig-custom-html" rows="3" placeholder='&lt;iframe src="https://..."&gt;&lt;/iframe&gt;  — or paste embed code'></textarea>
+          </div>
+          <button class="btn btn-s btn-sm" style="margin-top:8px" onclick="applyIgEmbed()">Apply Custom Embed</button>
+        </div>
+        <div class="card">
+          <div class="ctitle">Spotify Player Preview <span style="font-size:10px;color:var(--fg-f);text-transform:none;font-weight:400;letter-spacing:0">— from Music settings</span></div>
+          <div id="sp-social-embed">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--fg-f)">Set a Spotify track URL in Music settings first.</div>
+          </div>
+          <div style="margin-top:14px">
+            <label class="fl">Spotify Playlist Embed URL (optional)</label>
+            <input class="fi" id="sp-playlist-url" type="url" placeholder="https://open.spotify.com/playlist/..."/>
+            <button class="btn btn-s btn-sm" style="margin-top:8px" onclick="loadSpPlaylist()">Preview Playlist</button>
+            <div id="sp-playlist-embed" style="margin-top:10px"></div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- TESTIMONIALS -->
+      <div class="page" id="page-testimonials">
+        <div class="ptitle">Testimonials</div>
+        <div class="psub">Client quotes shown in the Overview page testimonials section.</div>
+        <div class="card">
+          <div class="ctitle">Testimonials <button class="btn btn-s btn-sm" onclick="addTestimonial()">+ Add</button></div>
+          <div id="testi-list"></div>
+        </div>
+        <button class="btn btn-p" onclick="saveTestimonials()">Save Testimonials</button>
+      </div>
+
+      <!-- CLIENT LOGOS -->
+      <div class="page" id="page-client-logos">
+        <div class="ptitle">Client Logos</div>
+        <div class="psub">Logo marquee banner on the Overview page. Upload images or paste URLs.</div>
+        <div class="card">
+          <div class="ctitle">Logos</div>
+          <div class="mgrid" id="logo-grid"></div>
+          <div class="upzone" id="logo-upzone" style="margin-top:10px">
+            <div style="font-size:22px">⊕</div>
+            <p>Drag &amp; drop logo files or click to upload<br>PNG with transparency recommended</p>
+            <input type="file" id="logo-files" accept="image/*" multiple/>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <input class="fi" id="logo-url-inp" type="url" placeholder="Or paste image URL..." style="flex:1"/>
+            <input class="fi" id="logo-name-inp" type="text" placeholder="Brand name" style="max-width:140px"/>
+            <button class="btn btn-s btn-sm" onclick="addLogoUrl()">Add</button>
+          </div>
+        </div>
+        <button class="btn btn-p" onclick="saveLogos()">Save Logos</button>
+      </div>
+
+      <!-- TOOL STACK -->
+      <div class="page" id="page-toolstack">
+        <div class="ptitle">Tool Stack</div>
+        <div class="psub">Tools shown on the Overview page. Icons are auto-loaded from Simple Icons.</div>
+        <div class="card">
+          <div class="ctitle">Tools</div>
+          <p style="font-size:12px;color:var(--fg-m);line-height:1.7;margin-bottom:14px">Enter tool names exactly as listed here for auto icons. Your current stack is pre-filled.<br>Examples: <span style="color:var(--acc)">Figma, Adobe Creative Suite, Framer, Webflow, Notion, Cursor, Midjourney, Runway ML</span></p>
+          <div id="tools-list"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <input class="fi" id="tool-new" type="text" placeholder="Tool name e.g. Figma..." style="max-width:200px"/>
+            <button class="btn btn-s btn-sm" onclick="addTool()">Add</button>
+          </div>
+        </div>
+        <button class="btn btn-p" onclick="saveTools()">Save Tools</button>
+      </div>
+
+      <!-- FAVOURITE JAMS -->
+      <div class="page" id="page-jams">
+        <div class="ptitle">Favourite Jams</div>
+        <div class="psub">Music shown on the Overview page. Paste Spotify or Apple Music links.</div>
+        <div class="card">
+          <div class="ctitle">Spotify</div>
+          <div class="fg"><label class="fl">Spotify Playlist or Track URL</label>
+            <input class="fi" id="jam-sp-url" type="url" placeholder="https://open.spotify.com/playlist/..."/>
+          </div>
+          <div id="jam-sp-preview" style="margin-top:10px"></div>
+        </div>
+        <div class="card">
+          <div class="ctitle">Apple Music</div>
+          <div class="fg"><label class="fl">Apple Music Album or Playlist Embed URL</label>
+            <input class="fi" id="jam-am-url" type="url" placeholder="https://embed.music.apple.com/..."/>
+            <p style="font-family:var(--mono);font-size:10px;color:var(--fg-m);margin-top:6px;line-height:1.6">To get embed URL: open Apple Music → share → Copy Embed Code → paste here the src= URL</p>
+          </div>
+          <div id="jam-am-preview" style="margin-top:10px"></div>
+        </div>
+        <div class="card">
+          <div class="ctitle">Additional Tracks / Playlists</div>
+          <div id="jams-extra-list"></div>
+          <button class="btn btn-s btn-sm" style="margin-top:8px" onclick="addJamItem()">+ Add Link</button>
+        </div>
+        <button class="btn btn-p" onclick="saveJams()">Save Jams</button>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /abody -->
+</div><!-- /app -->
+<div id="toast"></div>
+
+<script>
+// ── Data ─────────────────────────────────────
+const GS_KEY='gs_portfolio_data';
+const PW_KEY='gs_admin_pw';
+const IMGBB_KEY_STORE='gs_imgbb_key';
+// ── Migrate data from any legacy key so no data is ever lost ──
+(function(){
+  if(localStorage.getItem(GS_KEY))return;
+  const legacy=['gs-portfolio-v2','gs-portfolio','gs_portfolio','portfolio-data','gsPortfolio'];
+  for(const k of legacy){const v=localStorage.getItem(k);if(v){try{JSON.parse(v);localStorage.setItem(GS_KEY,v);break;}catch(e){}}}
+})();
+const GS_DEF={meta:{name:"Goutham Shibulal",role:"UI/UX Designer & Brand Strategist",location:"Florence, Italy",email:"gouthamslal.work@gmail.com",phone:"+39 328 816 4421",linkedin:"https://linkedin.com/in/gouthamslal",bio:["Goutham Shibulal is a UI/UX Designer and Brand Strategist based in Florence, Italy.","Drawn to photography and film direction as a child, this background informs a compositional eye.","His work is shaped by Gestalt principles and the conviction that brands must be desired before they are bought."],spotifyUrl:"",spotifyAutoplay:true,logoType:"text",logoUrl:"",logoRatio:"wide"},skills:["Brand Identity","UI/UX Design","Brand Strategy","Visual Systems","Art Direction","Figma","Design Systems","Webflow","Motion Design","Photography","Gestalt Theory"],experience:[{id:"e1",period:"Sep 2022 — 2024",company:"Pine Labs",role:"Product Marketing Lead",bullets:["Developed main screens for apps & white-labelled UI sections","Crafted design proposals and secured stakeholder approvals","Managed product campaign decks and marketing collateral","Led complete overhaul of company website","Brand consistency advocacy across the organisation"]},{id:"e2",period:"Oct 2020 — 2022",company:"Freelance",role:"Brand Strategist & UI/UX Designer",bullets:["End-to-end brand identity systems for startups globally","SaaS product interfaces applying Gestalt-driven UX","Design systems aligned to brand DNA","Direct collaboration with founders on visual strategy"]}],awards:[{id:"a1",name:"Awwwards",desc:"Honorable Mention",year:"2024"},{id:"a2",name:"Orpetron WDA",desc:"Web Design Award",year:"2024"},{id:"a3",name:"Bouygues Telecom",desc:"UX Sprint — Jury's Choice",year:"2023"},{id:"a4",name:"330ML Brief",desc:"Public's Choice — 2nd Place",year:"2023"}],categories:[{id:"branding",label:"Branding"},{id:"digital",label:"Digital & UX"},{id:"campaigns",label:"Campaigns"},{id:"strategy",label:"Strategy"}],projects:[{id:"p1",category:"branding",client:"Pine Labs",order:0,services:"Product Marketing / Brand System\nVisual Identity · Collateral Design",desc:"Led the complete rebrand of Pine Labs' product marketing ecosystem.",media:[{id:"m1",type:"placeholder",label:"Brand System",bg:"d1",layout:"tall"},{id:"m2",type:"placeholder",label:"Identity Mark",bg:"d2",layout:"normal"}],gridLayout:"1-2"},{id:"p2",category:"branding",client:"Hospitality Brand",order:1,services:"Re-Branding Strategy\nCreative Concept / Identity Design",desc:"Complete brand identity for a hospitality startup.",media:[{id:"m5",type:"placeholder",label:"Logo Mark",bg:"d3",layout:"square"}],gridLayout:"2col"},{id:"p3",category:"digital",client:"Fintech SaaS Platform",order:0,services:"UI/UX Design / Design System\nFigma · Prototyping · Handoff",desc:"Comprehensive SaaS platform interface applying Gestalt principles.",media:[{id:"m8",type:"placeholder",label:"Dashboard",bg:"d6",layout:"normal"}],gridLayout:"2col"},{id:"p4",category:"campaigns",client:"Zomato — Digital Campaign",order:0,services:"Creative Direction / Art Direction\nSocial · In-App · OOH",desc:"Art directed a digital campaign for Zomato.",media:[{id:"m11",type:"placeholder",label:"Hero Visual",bg:"d1",layout:"normal"}],gridLayout:"2col"},{id:"p5",category:"strategy",client:"Bouygues Telecom",order:0,services:"UX Strategy / Service Design\nSprint · Jury's Choice Award",desc:"UX Sprint improving the customer journey.",media:[{id:"m14",type:"placeholder",label:"Journey Map",bg:"d6",layout:"normal"}],gridLayout:"2col"}]};
+function gsLoad(){try{const r=localStorage.getItem(GS_KEY);return r?JSON.parse(r):JSON.parse(JSON.stringify(GS_DEF))}catch(e){return JSON.parse(JSON.stringify(GS_DEF))}}
+function gsSave(d){try{localStorage.setItem(GS_KEY,JSON.stringify(d));setSt('ok');return true}catch(e){setSt('err');return false}}
+function getPw(){return localStorage.getItem(PW_KEY)||'admin2025'}
+// ── Global vars needed before renderProjects is called on load ──
+let _reorderMode=false,_projDragSrc=null;
+let edMedia=[],dragSrcIdx=null;
+let _testis=[];
+let _expReorderMode=false;
+let _peVisible=true;
+function setPw(p){localStorage.setItem(PW_KEY,p)}
+let D=gsLoad(),curProjId=null,logoUrl='',logoRatio='wide';
+
+// ── Auth ──────────────────────────────────────
+const SESSION_KEY='gs_session_v1';
+function isSessionValid(){
+  try{
+    const s=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
+    if(!s||!s.keep)return false; // only persist if "keep me signed in" was checked
+    return s.pw===getPw(); // invalidate if password changed
+  }catch(e){return false;}
+}
+function setSession(keep){
+  if(keep){localStorage.setItem(SESSION_KEY,JSON.stringify({keep:true,pw:getPw(),t:Date.now()}))}
+  else{localStorage.removeItem(SESSION_KEY);}
+}
+function showApp(){
+  document.getElementById('login').classList.add('gone');
+  document.getElementById('app').classList.add('on');
+  loadAll();
+}
+function doLogin(){
+  const pw=document.getElementById('pw-in').value.trim();
+  const err=document.getElementById('lerr');
+  err.classList.remove('show');
+  if(!pw){err.textContent='Please enter your password.';err.classList.add('show');return;}
+  if(pw===getPw()){
+    const keep=document.getElementById('keep-in').checked;
+    setSession(keep);
+    showApp();
+  } else {
+    err.textContent='Incorrect password. Try again.';
+    err.classList.add('show');
+    document.getElementById('pw-in').value='';
+    document.getElementById('pw-in').focus();
+  }
+}
+// Checkbox visual
+document.getElementById('keep-in').addEventListener('change',function(){
+  const box=document.getElementById('keep-box');
+  box.style.background=this.checked?'var(--acc)':'var(--bg)';
+  box.style.borderColor=this.checked?'var(--acc)':'var(--bl)';
+  box.innerHTML=this.checked?'<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>':'';
+});
+document.getElementById('pw-in').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+function doLogout(){
+  setSession(false);
+  document.getElementById('app').classList.remove('on');
+  document.getElementById('login').classList.remove('gone');
+  document.getElementById('pw-in').value='';
+}
+// Auto-login if valid session exists
+if(isSessionValid()){showApp();}
+
+// ── Sidebar ────────────────────────────────────
+function nav(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.si').forEach(s=>s.classList.remove('on'));
+  document.getElementById('page-'+id).classList.add('on');
+  if(el)el.classList.add('on');
+  closeSidebar();
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+function closeSidebar(){if(window.innerWidth<=700)document.getElementById('sidebar').classList.remove('open')}
+
+// ── Toast ─────────────────────────────────────
+let toastT;
+function toast(msg,t='ok'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.borderColor=t==='ok'?'var(--green)':t==='err'?'var(--red)':'var(--bl)';
+  el.classList.add('show');clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('show'),2300);
+}
+function setSt(s){
+  const el=document.getElementById('save-st');
+  el.textContent=s==='ok'?'✓ Saved':s==='err'?'⚠ Failed':'Saving...';
+  el.className='save-st '+(s==='ok'?'ok':s==='err'?'err':'');
+}
+
+// ── Load all ─────────────────────────────────
+function loadAll(){
+  D=gsLoad();loadBranding();loadMeta();loadBioPage();loadSkills();loadExp();loadEdu();loadAwards();loadCats();renderProjects();loadMusic();loadImgbbSettings();
+}
+
+// ── BRANDING ─────────────────────────────────
+function loadBranding(){
+  const m=D.meta;
+  logoUrl=m.logoUrl||'';logoRatio=m.logoRatio||'wide';
+  document.getElementById('logo-type').value=m.logoType||'text';
+  if(m.logoCustomText)document.getElementById('logo-custom-text').value=m.logoCustomText;
+  onLogoTypeChange();
+  if(logoUrl)document.getElementById('logo-url-inp').value=logoUrl;
+  setRatioUI(logoRatio);
+  updateLogoPreview();
+}
+function onLogoTypeChange(){
+  const t=document.getElementById('logo-type').value;
+  document.getElementById('logo-image-section').style.display=(t==='image'||t==='both')?'block':'none';
+  document.getElementById('logo-custom-section').style.display=(t==='custom'||t==='both')?'block':'none';
+  updateLogoPreview();
+}
+function setRatio(r,btn){
+  logoRatio=r;
+  setRatioUI(r);
+  updateLogoPreview();
+}
+function setRatioUI(r){
+  document.querySelectorAll('.ratio-btn').forEach(b=>b.classList.toggle('sel',b.dataset.ratio===r));
+}
+function applyLogoUrl(){
+  const url=document.getElementById('logo-url-inp').value.trim();
+  if(!url)return;
+  logoUrl=url;
+  updateLogoPreview();
+  toast('Logo URL set');
+}
+function updateLogoPreview(){
+  const type=document.getElementById('logo-type').value;
+  const wrap=document.getElementById('logo-preview-wrap');
+  const msg=document.getElementById('logo-preview-msg');
+  const llp=document.getElementById('llp-content');
+  const customTxt=document.getElementById('logo-custom-text')?.value||D.meta.logoCustomText||D.meta.name||'Your Name';
+  if(type==='image'&&logoUrl){
+    wrap.innerHTML=`<img src="${logoUrl}" class="logo-preview-img" alt="Logo"/>`;
+    if(llp)llp.innerHTML=`<img src="${logoUrl}" style="height:${logoRatio==='tall'?'28px':logoRatio==='sq'?'24px':'20px'};width:auto;object-fit:contain" alt="Logo"/>`;
+  } else if(type==='both'&&logoUrl){
+    wrap.innerHTML=`<img src="${logoUrl}" class="logo-preview-img" alt="Logo"/>`;
+    const h=logoRatio==='tall'?'28px':logoRatio==='sq'?'24px':'20px';
+    if(llp)llp.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><img src="${logoUrl}" style="height:${h};width:auto;object-fit:contain" alt="Logo"/><span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.07em;color:var(--fg)">${customTxt}</span></div>`;
+  } else if(type==='custom'){
+    if(msg)wrap.innerHTML='<span class="logo-preview-text">Custom text mode</span>';
+    if(llp)llp.innerHTML=`<span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.07em;color:var(--fg)">${customTxt}</span>`;
+  } else {
+    if(msg)wrap.innerHTML='<span class="logo-preview-text" id="logo-preview-msg">No logo uploaded yet.</span>';
+    if(llp){const n=D.meta.name||'Goutham Shibulal';llp.innerHTML=`<span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.07em;color:var(--fg)">${n}</span>`}
+  }
+}
+function saveBranding(){
+  D.meta.logoType=document.getElementById('logo-type').value;
+  D.meta.logoUrl=logoUrl;
+  D.meta.logoRatio=logoRatio;
+  D.meta.logoCustomText=document.getElementById('logo-custom-text').value.trim();
+  gsSave(D);toast('Branding saved ✓');
+}
+
+// Logo file upload
+document.getElementById('logo-upzone').addEventListener('click',()=>document.getElementById('logo-file').click());
+document.getElementById('logo-file').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{logoUrl=ev.target.result;document.getElementById('logo-url-inp').value='';updateLogoPreview();toast('Logo uploaded')};
+  r.readAsDataURL(f);
+  e.target.value='';
+});
+['dragover','dragleave','drop'].forEach(ev=>document.getElementById('logo-upzone').addEventListener(ev,e=>{
+  e.preventDefault();
+  if(ev==='drop'){const f=e.dataTransfer.files[0];if(!f)return;const r=new FileReader();r.onload=ev2=>{logoUrl=ev2.target.result;updateLogoPreview();toast('Logo uploaded')};r.readAsDataURL(f)}
+  document.getElementById('logo-upzone').classList.toggle('over',ev==='dragover');
+}));
+
+// ── META ─────────────────────────────────────
+function loadMeta(){
+  const m=D.meta;
+  ['name','role','email','phone','linkedin','location'].forEach(k=>document.getElementById('meta-'+k).value=m[k]||'');
+}
+function saveMeta(){
+  ['name','role','email','phone','linkedin','location'].forEach(k=>D.meta[k]=document.getElementById('meta-'+k).value.trim());
+  gsSave(D);updateLogoPreview();toast('Identity saved ✓');
+}
+
+// ── BIO ───────────────────────────────────────
+function loadBioPage(){
+  document.getElementById('bio-list').innerHTML=D.meta.bio.map((p,i)=>`
+    <div class="fg" style="display:flex;gap:7px;align-items:flex-start">
+      <textarea class="fi bio-p" rows="2" style="flex:1">${p}</textarea>
+      <button class="btn btn-d btn-ico btn-sm" onclick="rmBio(${i})">✕</button>
+    </div>`).join('');
+}
+function addBio(){D.meta.bio.push('New paragraph...');loadBioPage()}
+function rmBio(i){D.meta.bio.splice(i,1);loadBioPage()}
+function saveBio(){
+  D.meta.bio=Array.from(document.querySelectorAll('.bio-p')).map(t=>t.value.trim()).filter(Boolean);
+  gsSave(D);loadBioPage();toast('Bio saved ✓');
+}
+
+// ── SKILLS ────────────────────────────────────
+function loadSkills(){
+  document.getElementById('skills-list').innerHTML=D.skills.map((s,i)=>`<div class="tag">${s}<span class="tag-x" onclick="rmSkill(${i})">✕</span></div>`).join('');
+}
+function addSkill(){
+  const inp=document.getElementById('skill-new');const v=inp.value.trim();if(!v)return;
+  D.skills.push(v);inp.value='';gsSave(D);loadSkills();toast('Skill added');
+}
+function rmSkill(i){D.skills.splice(i,1);gsSave(D);loadSkills()}
+document.getElementById('skill-new').addEventListener('keydown',e=>{if(e.key==='Enter')addSkill()});
+
+// ── EXPERIENCE ────────────────────────────────
+function toggleExpReorder(){
+  _expReorderMode=!_expReorderMode;
+  const btn=document.getElementById('exp-reorder-btn');
+  const hint=document.getElementById('exp-reorder-hint');
+  if(_expReorderMode){btn.textContent='✓ Save Order';btn.className='btn btn-p btn-sm';hint.style.display='block';loadExp();}
+  else{
+    const items=document.querySelectorAll('#exp-list .exp-item');
+    items.forEach((el,i)=>{const id=el.dataset.id;const ex=D.experience.find(x=>x.id===id);if(ex)ex.order=i;});
+    D.experience.sort((a,b)=>(a.order||0)-(b.order||0));
+    gsSave(D);btn.textContent='⇅ Reorder';btn.className='btn btn-s btn-sm';hint.style.display='none';loadExp();toast('Order saved ✓');
+  }
+}
+function loadExp(){
+  document.getElementById('exp-list').innerHTML=D.experience.map((e,i)=>{
+    if(_expReorderMode){
+      return`<div class="li exp-item" data-id="${e.id}" draggable="true"
+        ondragstart="this._dragSrc=true;this.style.opacity='.4'"
+        ondragend="this.style.opacity='1';document.querySelectorAll('.exp-item').forEach(el=>el.style.borderTop='')"
+        ondragover="event.preventDefault();this.style.borderTop='2px solid var(--acc)'"
+        ondragleave="this.style.borderTop=''"
+        ondrop="event.preventDefault();this.style.borderTop='';const src=document.querySelector('.exp-item[style*=opacity]')||document.querySelector('.exp-item._dragging');const list=document.getElementById('exp-list');if(src&&src!==this){const ch=Array.from(list.children);const si=ch.indexOf(src),di=ch.indexOf(this);if(si<di)this.after(src);else this.before(src);}">
+        <div class="li-hdr" style="cursor:grab">
+          <div class="li-hl"><span style="font-size:16px;color:var(--fg-m);margin-right:6px">⠿</span><span class="li-n">${i+1}</span><div><div class="li-t">${e.company}</div><div class="li-s">${e.period} · ${e.role}</div></div></div>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--fg-f)">drag</span>
+        </div>
+      </div>`;
+    }
+    return`<div class="li exp-item" data-id="${e.id}">
+      <div class="li-hdr" onclick="tog(this)">
+        <div class="li-hl"><span class="li-n">${i+1}</span><div><div class="li-t">${e.company}</div><div class="li-s">${e.period} · ${e.role}</div></div></div>
+        <div class="li-acts"><button class="btn btn-d btn-sm" onclick="rmExp('${e.id}',event)">Remove</button></div>
+      </div>
+      <div class="li-body" data-id="${e.id}">
+        <div class="fg"><label class="fl">Company</label><input class="fi exp-co" value="${e.company.replace(/"/g,'&quot;')}"/></div>
+        <div class="fg"><label class="fl">Role</label><input class="fi exp-ro" value="${e.role.replace(/"/g,'&quot;')}"/></div>
+        <div class="fg"><label class="fl">Period</label><input class="fi exp-pe" value="${e.period.replace(/"/g,'&quot;')}"/></div>
+        <div class="fg"><label class="fl">Bullet Points</label>
+          <div class="bl-list">${(e.bullets||[]).map(b=>`<div class="bl-row"><input class="fi exp-bl" value="${b.replace(/"/g,'&quot;')}"/><button class="btn btn-d btn-ico btn-sm" onclick="this.parentElement.remove()">✕</button></div>`).join('')}</div>
+          <button class="btn btn-s btn-sm" onclick="addBullet(this)">+ Add Point</button>
+        </div>
+        <button class="btn btn-p btn-sm" onclick="saveExp('${e.id}',this)">Save</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function addExp(){D.experience.push({id:'e'+Date.now(),order:D.experience.length,period:'2024 — Present',company:'Company',role:'Role',bullets:['Key responsibility']});gsSave(D);loadExp();toast('Role added')}
+function rmExp(id,e){e.stopPropagation();D.experience=D.experience.filter(x=>x.id!==id);gsSave(D);loadExp();toast('Removed')}
+function addBullet(btn){const bl=btn.previousElementSibling;const r=document.createElement('div');r.className='bl-row';r.innerHTML=`<input class="fi exp-bl" value="New point"/><button class="btn btn-d btn-ico btn-sm" onclick="this.parentElement.remove()">✕</button>`;bl.appendChild(r)}
+function saveExp(id,btn){
+  const body=btn.closest('.li-body');const ex=D.experience.find(e=>e.id===id);if(!ex)return;
+  ex.company=body.querySelector('.exp-co').value.trim();ex.role=body.querySelector('.exp-ro').value.trim();ex.period=body.querySelector('.exp-pe').value.trim();
+  ex.bullets=Array.from(body.querySelectorAll('.exp-bl')).map(i=>i.value.trim()).filter(Boolean);
+  gsSave(D);loadExp();toast('Experience saved ✓');
+}
+function tog(hdr){hdr.nextElementSibling.classList.toggle('open')}
+
+// ── EDUCATION ────────────────────────────────
+function loadEdu(){
+  if(!D.education)D.education=[];
+  document.getElementById('edu-list').innerHTML=D.education.length?D.education.map((e,i)=>`
+    <div class="li">
+      <div class="li-hdr" onclick="tog(this)">
+        <div class="li-hl"><span class="li-n">${i+1}</span><div><div class="li-t">${e.institution||'Institution'}</div><div class="li-s">${e.course||''} · ${e.year||''}</div></div></div>
+        <button class="btn btn-d btn-sm" onclick="rmEdu(${i},event)">Remove</button>
+      </div>
+      <div class="li-body">
+        <div class="grid-2" style="margin-top:12px">
+          <div class="fg" style="grid-column:1/-1"><label class="fl">Institution</label><input class="fi edu-inst" value="${(e.institution||'').replace(/"/g,'&quot;')}"/></div>
+          <div class="fg"><label class="fl">Course / Degree</label><input class="fi edu-course" value="${(e.course||'').replace(/"/g,'&quot;')}"/></div>
+          <div class="fg"><label class="fl">Year</label><input class="fi edu-year" value="${(e.year||'').replace(/"/g,'&quot;')}" placeholder="2019 — 2022"/></div>
+        </div>
+        <button class="btn btn-p btn-sm" onclick="saveEdu(${i},this)">Save</button>
+      </div>
+    </div>`).join(''):'<div style="font-family:var(--mono);font-size:11px;color:var(--fg-f);padding:8px 0">No education added yet.</div>';
+}
+function addEdu(){if(!D.education)D.education=[];D.education.push({institution:'',course:'',year:''});gsSave(D);loadEdu();toast('Education added')}
+function rmEdu(i,e){e.stopPropagation();D.education.splice(i,1);gsSave(D);loadEdu();toast('Removed')}
+function saveEdu(i,btn){
+  const body=btn.closest('.li-body');
+  if(!D.education[i])return;
+  D.education[i].institution=body.querySelector('.edu-inst').value.trim();
+  D.education[i].course=body.querySelector('.edu-course').value.trim();
+  D.education[i].year=body.querySelector('.edu-year').value.trim();
+  gsSave(D);loadEdu();toast('Education saved ✓');
+}
+
+// ── AWARDS ────────────────────────────────────
+function loadAwards(){
+  document.getElementById('awards-list').innerHTML=D.awards.map((a,i)=>`
+    <div class="li" style="opacity:${a.hidden?'.45':'1'}">
+      <div class="li-hdr" onclick="tog(this)">
+        <div class="li-hl"><span class="li-n">${i+1}</span><div><div class="li-t">${a.name} ${a.hidden?'<span style=\'font-family:var(--mono);font-size:9px;color:var(--red);padding:1px 5px;border:1px solid var(--red);border-radius:3px\'>HIDDEN</span>':''}</div><div class="li-s">${a.desc} · ${a.year}</div></div></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-s btn-sm" onclick="toggleAwardHidden('${a.id}',event)" title="${a.hidden?'Make visible':'Hide'}">${a.hidden?'👁 Show':'🚫 Hide'}</button>
+          <button class="btn btn-d btn-sm" onclick="rmAward('${a.id}',event)">Remove</button>
+        </div>
+      </div>
+      <div class="li-body">
+        <div class="grid-2" style="margin-top:12px">
+          <div class="fg"><label class="fl">Award Name</label><input class="fi aw-n" value="${a.name.replace(/"/g,'&quot;')}"/></div>
+          <div class="fg"><label class="fl">Year</label><input class="fi aw-y" value="${a.year}"/></div>
+          <div class="fg" style="grid-column:1/-1"><label class="fl">Description</label><input class="fi aw-d" value="${a.desc.replace(/"/g,'&quot;')}"/></div>
+        </div>
+        <button class="btn btn-p btn-sm" onclick="saveAward('${a.id}',this)">Save</button>
+      </div>
+    </div>`).join('');
+}
+function toggleAwardHidden(id,e){e.stopPropagation();const aw=D.awards.find(a=>a.id===id);if(!aw)return;aw.hidden=!aw.hidden;gsSave(D);loadAwards();toast(aw.hidden?'Award hidden':'Award visible')}
+function addAward(){D.awards.push({id:'a'+Date.now(),name:'Award Name',desc:'Description',year:'2025',hidden:false});gsSave(D);loadAwards()}
+function rmAward(id,e){e.stopPropagation();D.awards=D.awards.filter(a=>a.id!==id);gsSave(D);loadAwards();toast('Removed')}
+function saveAward(id,btn){
+  const b=btn.closest('.li-body');const aw=D.awards.find(a=>a.id===id);if(!aw)return;
+  aw.name=b.querySelector('.aw-n').value.trim();aw.desc=b.querySelector('.aw-d').value.trim();aw.year=b.querySelector('.aw-y').value.trim();
+  gsSave(D);loadAwards();toast('Award saved ✓');
+}
+
+// ── CATEGORIES ───────────────────────────────
+function loadCats(){
+  document.getElementById('cat-list').innerHTML=D.categories.map((c,i)=>`
+    <div class="li">
+      <div class="li-hdr" onclick="tog(this)">
+        <div class="li-hl"><span class="li-n">${i+1}</span><div class="li-t">${c.label}</div></div>
+        <button class="btn btn-d btn-sm" onclick="rmCat('${c.id}',event)">Remove</button>
+      </div>
+      <div class="li-body">
+        <div class="fg" style="margin-top:12px"><label class="fl">Label</label><input class="fi cat-l" value="${c.label}"/></div>
+        <div class="fg"><label class="fl">ID (slug, no spaces)</label><input class="fi cat-id" value="${c.id}"/></div>
+        <button class="btn btn-p btn-sm" onclick="saveCat('${c.id}',this)">Save</button>
+      </div>
+    </div>`).join('');
+  const filt=document.getElementById('proj-filter');
+  filt.innerHTML='<option value="">All Categories</option>'+D.categories.map(c=>`<option value="${c.id}">${c.label}</option>`).join('');
+  const peCat=document.getElementById('pe-cat');
+  peCat.innerHTML=D.categories.map(c=>`<option value="${c.id}">${c.label}</option>`).join('');
+}
+function addCat(){D.categories.push({id:'cat'+Date.now(),label:'New Category'});gsSave(D);loadCats()}
+function rmCat(id,e){
+  e.stopPropagation();
+  if(D.projects.some(p=>p.category===id)){toast('Move projects out first','err');return}
+  D.categories=D.categories.filter(c=>c.id!==id);gsSave(D);loadCats();
+}
+function saveCat(oldId,btn){
+  const b=btn.closest('.li-body');const cat=D.categories.find(c=>c.id===oldId);if(!cat)return;
+  const newId=b.querySelector('.cat-id').value.trim().replace(/\s+/g,'-').toLowerCase();
+  const newLabel=b.querySelector('.cat-l').value.trim();
+  if(newId!==oldId)D.projects.forEach(p=>{if(p.category===oldId)p.category=newId});
+  cat.id=newId;cat.label=newLabel;
+  gsSave(D);loadCats();renderProjects();toast('Category saved ✓');
+}
+
+// ── PROJECTS ─────────────────────────────────
+function toggleReorderMode(){
+  _reorderMode=!_reorderMode;
+  const btn=document.getElementById('reorder-toggle-btn');
+  const hint=document.getElementById('reorder-hint');
+  if(_reorderMode){
+    btn.textContent='✓ Save Order';
+    btn.className='btn btn-p btn-sm';
+    hint.style.display='block';
+    renderProjects();
+  } else {
+    // Save new order to D.projects
+    const items=document.querySelectorAll('#projects-list .proj-item');
+    items.forEach((el,i)=>{
+      const id=el.dataset.projId;
+      const p=D.projects.find(x=>x.id===id);
+      if(p)p.order=i;
+    });
+    gsSave(D);
+    btn.textContent='⇅ Reorder';
+    btn.className='btn btn-s btn-sm';
+    hint.style.display='none';
+    renderProjects();
+    toast('Order saved ✓');
+  }
+}
+
+function renderProjects(){
+  const filter=document.getElementById('proj-filter').value;
+  const projs=(filter?D.projects.filter(p=>p.category===filter):[...D.projects]).sort((a,b)=>(a.order??0)-(b.order??0));
+  const list=document.getElementById('projects-list');
+  if(!projs.length){list.innerHTML=`<div style="padding:28px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--fg-f)">No projects yet. Click <b>+ New Project</b> to add one.</div>`;return}
+  list.innerHTML=projs.map((p,i)=>{
+    const cat=D.categories.find(c=>c.id===p.category);
+    if(_reorderMode){
+      return`<div class="li proj-item" data-proj-id="${p.id}" draggable="true"
+        ondragstart="projDragStart(event,this)"
+        ondragover="projDragOver(event,this)"
+        ondragleave="this.style.borderTop=''"
+        ondrop="projDrop(event,this)"
+        ondragend="projDragEnd()"
+        style="cursor:grab;margin-bottom:6px">
+        <div class="li-hdr" style="cursor:grab">
+          <div class="li-hl">
+            <span style="font-size:16px;color:var(--fg-m);margin-right:6px;cursor:grab">⠿</span>
+            <span class="li-n">${i+1}</span>
+            <div><div class="li-t">${p.client} ${p.hidden?'<span style="font-family:var(--mono);font-size:9px;color:var(--red);padding:1px 5px;border:1px solid var(--red);border-radius:3px">HIDDEN</span>':''}</div><div class="li-s">${cat?.label||p.category}${p.location?' · '+p.location:''} · ${p.media?.length||0} media</div></div>
+          </div>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--fg-f)">drag to reorder</span>
+        </div>
+      </div>`;
+    }
+    return`<div class="li proj-item" data-proj-id="${p.id}">
+      <div class="li-hdr" style="cursor:default">
+        <div class="li-hl" style="cursor:default"><span class="li-n">${i+1}</span>
+          <div><div class="li-t">${p.client} ${p.hidden?'<span style="font-family:var(--mono);font-size:9px;color:var(--red);padding:1px 5px;border:1px solid var(--red);border-radius:3px">HIDDEN</span>':''}</div><div class="li-s">${cat?.label||p.category}${p.location?' · '+p.location:''} · ${p.media?.length||0} media</div></div>
+        </div>
+        <div class="li-acts">
+          <button class="btn btn-s btn-sm" onclick="openEdit('${p.id}')">Edit</button>
+          <button class="btn btn-s btn-sm" onclick="duplicateProj('${p.id}')" title="Duplicate project" style="padding:5px 9px">⧉</button>
+          <button class="btn btn-d btn-sm" onclick="delProj('${p.id}')">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function projDragStart(e,el){_projDragSrc=el;e.dataTransfer.effectAllowed='move';el.style.opacity='.4'}
+function projDragOver(e,el){e.preventDefault();e.dataTransfer.dropEffect='move';el.style.borderTop='2px solid var(--acc)'}
+function projDrop(e,el){
+  e.preventDefault();el.style.borderTop='';
+  if(_projDragSrc&&_projDragSrc!==el){
+    const list=document.getElementById('projects-list');
+    const children=Array.from(list.querySelectorAll('.proj-item'));
+    const srcIdx=children.indexOf(_projDragSrc);
+    const dstIdx=children.indexOf(el);
+    if(srcIdx<dstIdx)el.after(_projDragSrc);else el.before(_projDragSrc);
+    // Re-number labels
+    list.querySelectorAll('.proj-item').forEach((c,i)=>{const n=c.querySelector('.li-n');if(n)n.textContent=i+1});
+  }
+}
+function projDragEnd(){if(_projDragSrc)_projDragSrc.style.opacity='1';_projDragSrc=null;document.querySelectorAll('.proj-item').forEach(el=>el.style.borderTop='')}
+
+function duplicateProj(id){
+  const p=D.projects.find(x=>x.id===id);if(!p)return;
+  const copy=JSON.parse(JSON.stringify(p));
+  copy.id='p'+Date.now();
+  copy.client=p.client+' (Copy)';
+  copy.order=D.projects.length;
+  D.projects.push(copy);
+  gsSave(D);renderProjects();toast('Project duplicated ✓');
+}
+
+function toggleProjVisible(){
+  _peVisible=!_peVisible;
+  document.getElementById('pe-visible-dot').style.background=_peVisible?'var(--green)':'var(--red)';
+  document.getElementById('pe-visible-label').textContent=_peVisible?'Visible — shown on portfolio':'Hidden — not shown on portfolio';
+}
+function openNew(){
+  if(!D.categories.length){toast('Add a category first','err');return;}
+  curProjId=null;
+  document.getElementById('pe-title').textContent='New Project';
+  document.getElementById('pe-client').value='';document.getElementById('pe-svc').value='';
+  document.getElementById('pe-desc').value='';document.getElementById('pe-layout').value='2col';
+  document.getElementById('pe-iframe').value='';
+  document.getElementById('pe-location').value='';
+  _peVisible=true;
+  document.getElementById('pe-visible-dot').style.background='var(--green)';
+  document.getElementById('pe-visible-label').textContent='Visible — shown on portfolio';
+  const peCat=document.getElementById('pe-cat');
+  if(peCat&&D.categories.length)peCat.value=D.categories[0].id;
+  edMedia=[];refreshMediaGrid();
+  nav('proj-ed',null);
+}
+function openEdit(id){
+  const p=D.projects.find(x=>x.id===id);if(!p)return;
+  curProjId=id;
+  document.getElementById('pe-title').textContent='Edit: '+p.client;
+  document.getElementById('pe-client').value=p.client;document.getElementById('pe-svc').value=p.services;
+  document.getElementById('pe-desc').value=p.desc;document.getElementById('pe-layout').value=p.gridLayout||'2col';
+  document.getElementById('pe-iframe').value=p.iframeUrl||'';
+  document.getElementById('pe-cat').value=p.category;
+  document.getElementById('pe-location').value=p.location||'';
+  _peVisible=p.hidden!==true;
+  document.getElementById('pe-visible-dot').style.background=_peVisible?'var(--green)':'var(--red)';
+  document.getElementById('pe-visible-label').textContent=_peVisible?'Visible — shown on portfolio':'Hidden — not shown on portfolio';
+  edMedia=(p.media||[]).map(m=>({...m}));refreshMediaGrid();
+  nav('proj-ed',null);
+}
+function delProj(id){
+  if(!confirm('Delete this project?'))return;
+  D.projects=D.projects.filter(p=>p.id!==id);gsSave(D);renderProjects();toast('Project deleted');
+}
+function delProject(){
+  if(!curProjId)return;
+  if(!confirm('Delete this project?'))return;
+  delProj(curProjId);
+  const projNavEl=Array.from(document.querySelectorAll('.si')).find(el=>el.getAttribute('onclick')&&el.getAttribute('onclick').includes("'projects'"));
+  if(projNavEl)nav('projects',projNavEl);
+}
+function saveProject(){
+  const client=document.getElementById('pe-client').value.trim();
+  if(!client){toast('Client name required','err');return}
+  // Check for oversized base64 images (localStorage limit ~5MB)
+  const totalBase64=edMedia.filter(m=>m.url&&m.url.startsWith('data:')).reduce((s,m)=>s+m.url.length,0);
+  if(totalBase64>3*1024*1024){
+    toast('⚠ Images too large — use URL links instead of uploads','err');
+    alert('Storage limit reached.\n\nBase64-encoded images are very large and fill up localStorage quickly.\n\nSolution:\n1. Host images on Imgur, Cloudinary, or Google Drive\n2. Copy the direct image URL\n3. Remove uploaded files and paste the URL instead\n\nOr go to Settings → Reset to clear all data and start fresh.');
+    return;
+  }
+  const pData={client,services:document.getElementById('pe-svc').value.trim(),desc:document.getElementById('pe-desc').value.trim(),gridLayout:document.getElementById('pe-layout').value,category:document.getElementById('pe-cat').value,iframeUrl:document.getElementById('pe-iframe').value.trim(),location:document.getElementById('pe-location').value.trim(),hidden:!_peVisible,media:edMedia.map(m=>({...m}))};
+  if(curProjId){const idx=D.projects.findIndex(x=>x.id===curProjId);if(idx>-1)Object.assign(D.projects[idx],pData);}
+  else{D.projects.push({id:'p'+Date.now(),order:D.projects.length,...pData})}
+  const ok=gsSave(D);
+  if(ok){
+    renderProjects();toast('Project saved ✓');
+    const projNavEl=Array.from(document.querySelectorAll('.si')).find(el=>el.getAttribute('onclick')&&el.getAttribute('onclick').includes("'projects'"));
+    if(projNavEl)nav('projects',projNavEl);
+  } else {
+    const used=new Blob([JSON.stringify(D)]).size;
+    toast(`Save failed — storage full (${(used/1024).toFixed(0)}KB used). Remove uploaded images.`,'err');
+    alert('Save failed — localStorage is full.\n\nCurrent data size: ~'+Math.round(used/1024)+'KB (limit is ~5120KB)\n\nTo fix:\n• Remove uploaded images from projects (use URLs instead)\n• Or go to Settings → Reset Data to start fresh\n\nTip: Always use image URLs (Imgur, Cloudinary) instead of file uploads to avoid this limit.');
+  }
+}
+
+// ── Media editor ──────────────────────────────
+function refreshMediaGrid(){
+  const g=document.getElementById('pe-media');
+  g.innerHTML=edMedia.map((m,i)=>`
+    <div class="mcard" draggable="true" data-i="${i}"
+      ondragstart="dragSrcIdx=${i};this.style.opacity='.4'"
+      ondragend="this.style.opacity='1'"
+      ondragover="event.preventDefault();this.style.borderColor='var(--acc)'"
+      ondragleave="this.style.borderColor=''"
+      ondrop="event.preventDefault();this.style.borderColor='';if(dragSrcIdx!==null&&dragSrcIdx!==${i}){const tmp=edMedia.splice(dragSrcIdx,1)[0];edMedia.splice(${i},0,tmp);dragSrcIdx=null;refreshMediaGrid()}">
+      <div style="text-align:center;padding:4px 4px 0;font-size:9px;color:var(--fg-f);font-family:var(--mono);cursor:grab">⠿ drag to reorder</div>
+      ${m.type==='image'||m.type==='gif'?`<img class="mthumb" src="${m.url}" alt=""/>`:
+        m.type==='video'?`<video class="mthumb" src="${m.url}" autoplay loop muted playsinline></video>`:
+        `<div class="mthumb-ph">🖼</div>`}
+      <div class="mcard-acts">
+        <input class="mlabel" value="${m.label||''}" placeholder="Label (optional)..." oninput="edMedia[${i}].label=this.value"/>
+        <button class="btn btn-d btn-ico btn-sm" onclick="rmMedia(${i})">✕</button>
+      </div>
+      <select onchange="edMedia[${i}].layout=this.value">
+        ${['normal','tall','square','wide'].map(l=>`<option value="${l}" ${m.layout===l?'selected':''}>${l}</option>`).join('')}
+      </select>
+    </div>`).join('');
+}
+function rmMedia(i){edMedia.splice(i,1);refreshMediaGrid()}
+// ── DRIVE LINK CONVERTER ───────────────────────
+function extractDriveId(url){
+  // handles: /file/d/ID/view  and  id=ID  and  open?id=ID
+  let m=url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if(m)return m[1];
+  m=url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if(m)return m[1];
+  return null;
+}
+function driveIdToUrl(id){
+  return 'https://drive.google.com/uc?export=view&id='+id;
+}
+function isDriveLink(url){
+  return url.includes('drive.google.com');
+}
+
+// Smart add — handles both regular URLs and Drive share links
+function addMediaUrlSmart(){
+  const raw=document.getElementById('pe-url').value.trim();
+  if(!raw)return;
+  let url=raw;
+  if(isDriveLink(raw)){
+    const id=extractDriveId(raw);
+    if(!id){toast('⚠ Could not parse Drive link — make sure it is a /file/d/... share URL');return;}
+    url=driveIdToUrl(id);
+  }
+  const isGif=url.toLowerCase().includes('.gif');
+  const isVid=url.match(/\.(mp4|webm|ogg)$/i);
+  edMedia.push({id:'m'+Date.now(),type:isVid?'video':isGif?'gif':'image',url,label:'',layout:'normal'});
+  refreshMediaGrid();document.getElementById('pe-url').value='';toast('Media added ✓');
+}
+
+// Legacy alias
+function addMediaUrl(){addMediaUrlSmart();}
+
+// ── DRIVE PICKER MODAL ──────────────────────────
+let _driveConvertedUrl='';
+function openDrivePicker(){document.getElementById('gdrive-modal').classList.add('open')}
+function closeDrivePicker(){document.getElementById('gdrive-modal').classList.remove('open');document.getElementById('gdrive-link-inp').value='';document.getElementById('gdrive-result').classList.remove('show');document.getElementById('gdrive-error').style.display='none';_driveConvertedUrl='';}
+function switchDriveTab(tab){
+  document.querySelectorAll('.gdrive-tab,.gdrive-tab-panel').forEach(el=>{
+    const match=el.classList.contains('gdrive-tab')?el.textContent.toLowerCase().includes(tab==='paste'?'paste':'how'):el.id.includes(tab);
+    el.classList.toggle('active',false);
+  });
+  document.querySelectorAll('.gdrive-tab').forEach((btn,i)=>btn.classList.toggle('active',(tab==='paste'&&i===0)||(tab==='how'&&i===1)));
+  document.querySelectorAll('.gdrive-tab-panel').forEach(p=>p.classList.toggle('active',p.id==='dtab-'+tab));
+}
+function convertDriveLink(){
+  const raw=document.getElementById('gdrive-link-inp').value.trim();
+  const errEl=document.getElementById('gdrive-error');
+  const resEl=document.getElementById('gdrive-result');
+  errEl.style.display='none';resEl.classList.remove('show');
+  if(!raw){errEl.textContent='Paste a Drive share link first.';errEl.style.display='block';return;}
+  const id=extractDriveId(raw);
+  if(!id){errEl.innerHTML='Could not find file ID.<br/>Make sure the link is a full share URL like:<br/><span style="color:var(--acc)">drive.google.com/file/d/FILE_ID/view</span>';errEl.style.display='block';return;}
+  const url=driveIdToUrl(id);
+  _driveConvertedUrl=url;
+  const urlEl=document.getElementById('gdrive-converted-url');
+  const prevEl=document.getElementById('gdrive-preview');
+  urlEl.textContent=url;
+  prevEl.src=url;
+  prevEl.className='gdrive-img-preview show';
+  prevEl.onerror=()=>{prevEl.className='gdrive-img-preview';urlEl.innerHTML=url+'<br/><span style="color:var(--fg-m)">Preview unavailable — file may not be public. See How to Share tab.</span>';};
+  resEl.classList.add('show');
+}
+function addDriveImage(){
+  if(!_driveConvertedUrl)return;
+  edMedia.push({id:'m'+Date.now(),type:'image',url:_driveConvertedUrl,label:'',layout:'normal'});
+  refreshMediaGrid();closeDrivePicker();toast('Drive image added ✓');
+}
+function copyDriveUrl(){
+  if(!_driveConvertedUrl)return;
+  navigator.clipboard.writeText(_driveConvertedUrl).then(()=>toast('URL copied ✓'));
+}
+// Close on backdrop click
+document.getElementById('gdrive-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeDrivePicker();});
+// ── IMGBB UPLOAD ──────────────────────────────
+const peFiles = document.getElementById('pe-files');
+const peStatus = document.getElementById('pe-upload-status');
+
+function getImgbbKey(){ return localStorage.getItem(IMGBB_KEY_STORE)||''; }
+
+// Update upload zone label based on key state
+function refreshUpzoneLabel(){
+  const key=getImgbbKey();
+  const sub=document.getElementById('upzone-sub');
+  if(!sub)return;
+  if(key){
+    sub.style.color='var(--acc)';
+    sub.innerHTML='Auto-uploads to ImgBB → URL ✓';
+  } else {
+    sub.style.color='var(--red)';
+    sub.innerHTML='⚠ No API key — <a href="#" onclick="nav(\'media-storage\',null);return false;" style="color:var(--acc)">Set up ImgBB</a> or paste a URL below';
+  }
+}
+refreshUpzoneLabel();
+
+document.getElementById('pe-upzone').addEventListener('click',()=>{
+  if(!getImgbbKey()){nav('media-storage',null);toast('Set your ImgBB API key first ↗');return;}
+  peFiles.click();
+});
+peFiles.addEventListener('change',e=>{handleFiles(Array.from(e.target.files));peFiles.value='';});
+['dragover','dragleave','drop'].forEach(ev=>document.getElementById('pe-upzone').addEventListener(ev,e=>{
+  e.preventDefault();
+  if(ev==='drop'){
+    if(!getImgbbKey()){nav('media-storage',null);toast('Set your ImgBB API key first ↗');return;}
+    handleFiles(Array.from(e.dataTransfer.files));
+  }
+  document.getElementById('pe-upzone').classList.toggle('over',ev==='dragover');
+}));
+
+function handleFiles(files){
+  const key=getImgbbKey();
+  if(!key){nav('media-storage',null);toast('Add your ImgBB API key first ↗');return;}
+  const imgs=Array.from(files).filter(f=>f.type.startsWith('image/'));
+  if(!imgs.length){toast('Only images supported. Paste a URL for videos.');return;}
+  peStatus.style.display='block';
+  peStatus.innerHTML='⏳ Uploading '+imgs.length+' image'+(imgs.length>1?'s':'')+'…';
+  let done=0,failed=0;
+  imgs.forEach((f,i)=>{
+    const fd=new FormData();
+    fd.append('image',f);
+    fetch('https://api.imgbb.com/1/upload?key='+key,{method:'POST',body:fd})
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.success&&data.data&&data.data.url){
+        const url=data.data.display_url||data.data.url;
+        const isGif=f.type==='image/gif';
+        edMedia.push({id:'m'+Date.now()+'_'+i,type:isGif?'gif':'image',url,label:'',layout:'normal'});
+        refreshMediaGrid();
+        done++;
+      } else { failed++;console.error('ImgBB upload failed',data); }
+    })
+    .catch(err=>{failed++;console.error('Upload error',err);})
+    .finally(()=>{
+      const total=imgs.length;
+      if(done+failed===total){
+        if(failed===0){
+          peStatus.innerHTML='✅ '+done+' image'+(done>1?'s':'')+' uploaded to ImgBB — saved as URLs';
+          setTimeout(()=>{peStatus.style.display='none';},3500);
+          toast(done+' image'+(done>1?'s':'')+' uploaded ✓');
+        } else if(done>0){
+          peStatus.innerHTML='⚠ '+done+' uploaded, '+failed+' failed. Check your API key in Settings → Media Storage.';
+        } else {
+          peStatus.innerHTML='❌ Upload failed. Check your API key in Settings → Media Storage.';
+        }
+      } else {
+        peStatus.innerHTML='⏳ Uploading… ('+( done+failed)+'/'+total+')';
+      }
+    });
+  });
+}
+
+// ── IMGBB SETTINGS ─────────────────────────────
+function loadImgbbSettings(){
+  const key=getImgbbKey();
+  const inp=document.getElementById('imgbb-key-inp');
+  if(inp)inp.value=key;
+  updateImgbbStatus(key?'connected':'empty');
+}
+function saveImgbbKey(){
+  const key=(document.getElementById('imgbb-key-inp').value||'').trim();
+  if(!key){updateImgbbStatus('clear');localStorage.removeItem(IMGBB_KEY_STORE);refreshUpzoneLabel();toast('API key cleared');return;}
+  localStorage.setItem(IMGBB_KEY_STORE,key);
+  refreshUpzoneLabel();
+  updateImgbbStatus('saved');
+  toast('API key saved ✓');
+}
+function testImgbbKey(){
+  const key=(document.getElementById('imgbb-key-inp').value||'').trim();
+  if(!key){updateImgbbStatus('nokey');return;}
+  updateImgbbStatus('testing');
+  // Upload a 1x1 transparent PNG as test
+  const b64='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+  fetch('https://api.imgbb.com/1/upload?key='+key,{method:'POST',body:Object.assign(new FormData(),{append:(()=>{const fd=new FormData();fd.append('image',b64);return fd.append.bind(fd)})()})});
+  // Simpler test: just try the upload endpoint
+  const fd=new FormData();
+  fd.append('image',b64);
+  fetch('https://api.imgbb.com/1/upload?key='+key,{method:'POST',body:fd})
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.success){updateImgbbStatus('ok');toast('ImgBB connected ✓');}
+    else{updateImgbbStatus('fail',d.error?.message||'Invalid key');}
+  })
+  .catch(()=>updateImgbbStatus('fail','Network error'));
+}
+function toggleImgbbVis(){
+  const inp=document.getElementById('imgbb-key-inp');
+  inp.type=inp.type==='password'?'text':'password';
+}
+function updateImgbbStatus(state,msg){
+  const el=document.getElementById('imgbb-status');if(!el)return;
+  const map={
+    'connected':'<span style="color:var(--green)">✓ API key saved and ready</span>',
+    'saved':'<span style="color:var(--green)">✓ API key saved</span>',
+    'ok':'<span style="color:var(--green)">✓ Connection successful — ImgBB is working</span>',
+    'testing':'<span style="color:var(--fg-m)">⏳ Testing connection…</span>',
+    'fail':'<span style="color:var(--red)">❌ Failed: '+(msg||'Invalid key')+'</span>',
+    'nokey':'<span style="color:var(--red)">⚠ Paste your API key first</span>',
+    'clear':'<span style="color:var(--fg-m)">API key cleared</span>',
+    'empty':''
+  };
+  el.innerHTML=map[state]||'';
+}
+
+// ── MUSIC ─────────────────────────────────────
+function loadMusic(){
+  document.getElementById('sp-url').value=D.meta.spotifyUrl||'';
+  document.getElementById('sp-tog').className='tog '+(D.meta.spotifyAutoplay?'on':'');
+  updateSpPreview();
+}
+function updateSpPreview(){
+  const url=document.getElementById('sp-url').value.trim();
+  const prev=document.getElementById('sp-prev');const emb=document.getElementById('sp-embed');
+  if(!url){prev.innerHTML='No track set.';emb.innerHTML='';return}
+  const id=url.match(/track\/([a-zA-Z0-9]+)/)?.[1];
+  if(id){
+    prev.innerHTML=`<span class="sp-ok">✓ Valid Spotify track ID: ${id}</span>`;
+    emb.innerHTML=`<iframe src="https://open.spotify.com/embed/track/${id}?utm_source=generator" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius:8px"></iframe>`;
+  } else {
+    prev.innerHTML=`<span class="sp-no">⚠ Not recognized. Paste a link like: open.spotify.com/track/...</span>`;
+    emb.innerHTML='';
+  }
+}
+document.getElementById('sp-url').addEventListener('input',updateSpPreview);
+function toggleSpAuto(){
+  D.meta.spotifyAutoplay=!D.meta.spotifyAutoplay;
+  document.getElementById('sp-tog').className='tog '+(D.meta.spotifyAutoplay?'on':'');
+}
+function saveMusic(){D.meta.spotifyUrl=document.getElementById('sp-url').value.trim();gsSave(D);toast('Music saved ✓')}
+
+// ── PASSWORD ──────────────────────────────────
+function changePw(){
+  const cur=document.getElementById('pw-cur').value;const nw=document.getElementById('pw-new').value;const cf=document.getElementById('pw-conf').value;
+  const err=document.getElementById('pw-err');err.style.display='none';
+  if(cur!==getPw()){err.textContent='Current password is incorrect.';err.style.display='block';return}
+  if(nw.length<6){err.textContent='Min 6 characters.';err.style.display='block';return}
+  if(nw!==cf){err.textContent='Passwords do not match.';err.style.display='block';return}
+  setPw(nw);['pw-cur','pw-new','pw-conf'].forEach(id=>document.getElementById(id).value='');toast('Password updated ✓');
+}
+
+// ── RESET ─────────────────────────────────────
+function doReset(){
+  if(!confirm('Reset ALL data to defaults? Cannot be undone.'))return;
+  localStorage.removeItem(GS_KEY);D=gsLoad();loadAll();toast('Reset complete');
+  updateStorageMeter();
+}
+function updateStorageMeter(){
+  const el=document.getElementById('storage-meter');if(!el)return;
+  const used=new Blob([localStorage.getItem(GS_KEY)||'']).size;
+  const max=5*1024*1024;
+  const pct=Math.min(100,Math.round(used/max*100));
+  const color=pct>80?'var(--red)':pct>60?'#f59e0b':'var(--acc)';
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--fg-m);margin-bottom:6px">
+      <span>Used: ${(used/1024).toFixed(0)}KB / ~5120KB</span><span style="color:${color}">${pct}%</span>
+    </div>
+    <div style="height:6px;background:var(--border);border-radius:99px;overflow:hidden">
+      <div style="height:100%;width:${pct}%;background:${color};border-radius:99px;transition:width .4s"></div>
+    </div>`;
+}
+
+// ── OVERVIEW PAGE EDITOR ──────────────────────
+function loadOverviewPage(){
+  const ov=D.meta.overview||{};
+  document.getElementById('ov-headline').value=ov.headline||'Design that is <em>desired before bought</em>';
+  document.getElementById('ov-sub').value=ov.sub||'A multidisciplinary practice spanning brand identity, UI/UX design, and visual strategy.';
+  renderOvBioList(ov.bio||[]);
+  document.getElementById('ov-cta1-label').value=ov.cta1Label||'View Work ↗';
+  document.getElementById('ov-cta1-url').value=ov.cta1Url||'/index';
+  document.getElementById('ov-cta2-label').value=ov.cta2Label||'Get in Touch';
+  document.getElementById('ov-cta2-url').value=ov.cta2Url||('mailto:'+(D.meta.email||''));
+  const phil=ov.philosophy||['Brands are built on perception.','Gestalt over decoration.','The best interfaces feel inevitable.','Strategy and aesthetics are one conversation.'];
+  renderPhilList(phil);
+  const brands=ov.brands||['Pine Labs','Zomato','Swiggy','Darwinbox','Shopify','Amadeus','Bouygues Telecom'];
+  renderBrandsList(brands);
+  renderLogosList(ov.logos||[]);
+  // Sync _testis from D.meta.testimonials so saveOverview captures them correctly
+  _testis=JSON.parse(JSON.stringify(D.meta.testimonials||[]));
+  renderTestiList(_testis);
+  renderToolsList(D.meta.toolStack||['Figma','Adobe Creative Suite','Framer','Webflow','ProtoPie','Principle','InVision','Zeplin','Maze','Hotjar','Google Analytics (GA4)','Optimal Workshop','Jira','Confluence','Notion','ClickUp','Midjourney','Runway ML','Stable Diffusion','Uizard','Final Cut Pro','Canva','Git / GitHub','Vercel','Cursor','HTML/CSS (Working Knowledge)','React (Basic Understanding)','Tailwind CSS']);
+  // Jams managed via dedicated Jams page
+}
+
+
+// ── Overview Bio (separate from portfolio bio) ──────────
+function renderOvBioList(arr){
+  document.getElementById('ov-bio-list').innerHTML=arr.length?arr.map((p,i)=>`
+    <div class="fg" style="display:flex;gap:7px;align-items:flex-start">
+      <textarea class="fi ov-bio-p" rows="2" style="flex:1">${p.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+      <button class="btn btn-d btn-ico btn-sm" onclick="removeOvBio(${i})">✕</button>
+    </div>`).join(''):'<div style="font-family:var(--mono);font-size:11px;color:var(--fg-f);padding:4px 0">No paragraphs yet. Click + Add Paragraph.</div>';
+}
+function addOvBio(){const arr=getOvBioArr();arr.push('New paragraph...');renderOvBioList(arr);}
+function removeOvBio(i){const arr=getOvBioArr();arr.splice(i,1);renderOvBioList(arr);}
+function getOvBioArr(){return Array.from(document.querySelectorAll('.ov-bio-p')).map(t=>t.value.trim()).filter(Boolean);}
+
+// ── Philosophy ─────────────────────────────────
+function renderPhilList(arr){
+  document.getElementById('phil-list').innerHTML=arr.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="font-family:var(--mono);font-size:10px;color:var(--fg-f);width:22px">${String(i+1).padStart(2,'0')}</span>
+      <input class="fi" value="${t.replace(/"/g,'&quot;')}" style="flex:1"/>
+      <button class="btn btn-d btn-ico btn-sm" onclick="removePhil(${i})">✕</button>
+    </div>`).join('');
+}
+function getPhilArr(){return Array.from(document.getElementById('phil-list').querySelectorAll('input')).map(i=>i.value.trim()).filter(Boolean)}
+function addPhil(){const arr=getPhilArr();arr.push('New principle...');renderPhilList(arr)}
+function removePhil(i){const arr=getPhilArr();arr.splice(i,1);renderPhilList(arr)}
+
+// ── Brands ──────────────────────────────────────
+function renderBrandsList(arr){
+  document.getElementById('brands-list').innerHTML=arr.map((b,i)=>`<div class="tag">${b}<span onclick="removeBrand(${i})">✕</span></div>`).join('');
+}
+function getBrandsArr(){return Array.from(document.getElementById('brands-list').querySelectorAll('.tag')).map(t=>t.childNodes[0].textContent.trim())}
+function addBrand(){const inp=document.getElementById('brand-new');const v=inp.value.trim();if(!v)return;const arr=getBrandsArr();arr.push(v);renderBrandsList(arr);inp.value=''}
+function removeBrand(i){const arr=getBrandsArr();arr.splice(i,1);renderBrandsList(arr)}
+
+// ── Client Logos ────────────────────────────────
+let _logos=[];
+function renderLogosList(arr){
+  _logos=[...arr];
+  document.getElementById('logos-list').innerHTML=arr.map((l,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:6px">
+      ${l.url?`<img src="${l.url}" style="height:24px;width:auto;max-width:60px;object-fit:contain;flex-shrink:0" onerror="this.style.display='none'"/>`:'<span style="font-size:18px">🏢</span>'}
+      <span style="font-family:var(--mono);font-size:10px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.name||'Logo'}</span>
+      <button class="btn btn-d btn-ico btn-sm" onclick="removeLogo(${i})">✕</button>
+    </div>`).join('');
+}
+function addLogo(){
+  const url=document.getElementById('logo-url-inp').value.trim();
+  const name=document.getElementById('logo-name-inp').value.trim();
+  if(!url&&!name)return;
+  _logos.push({url,name:name||'Brand'});
+  renderLogosList(_logos);
+  document.getElementById('logo-url-inp').value='';
+  document.getElementById('logo-name-inp').value='';
+}
+function removeLogo(i){_logos.splice(i,1);renderLogosList(_logos)}
+function handleLogoUpload(inp){
+  const f=inp.files[0];if(!f)return;
+  const name=document.getElementById('logo-name-inp').value.trim()||f.name.replace(/\.[^.]+$/,'');
+  const r=new FileReader();
+  r.onload=ev=>{_logos.push({url:ev.target.result,name});renderLogosList(_logos);toast('Logo uploaded ✓')};
+  r.readAsDataURL(f);inp.value='';
+}
+
+// ── Testimonials ────────────────────────────────
+function renderTestiList(arr){
+  _testis=[...arr];
+  document.getElementById('testi-list').innerHTML=arr.length?arr.map((t,i)=>`
+    <div class="li" style="margin-bottom:8px">
+      <div class="li-hdr" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer">
+        <span style="font-family:var(--mono);font-size:11px">${t.name||'New Testimonial'}</span>
+        <button class="btn btn-d btn-ico btn-sm" onclick="event.stopPropagation();removeTesti(${i})">✕</button>
+      </div>
+      <div style="display:none;padding:12px 14px;border-top:1px solid var(--border)">
+        <div class="fg"><label class="fl">Quote</label><textarea class="fi" rows="3" oninput="updateTesti(${i},'quote',this.value)">${t.quote||''}</textarea></div>
+        <div class="grid-2">
+          <div class="fg"><label class="fl">Name</label><input class="fi" value="${t.name||''}" oninput="updateTesti(${i},'name',this.value)"/></div>
+          <div class="fg"><label class="fl">Role / Company</label><input class="fi" value="${t.role||''}" oninput="updateTesti(${i},'role',this.value)"/></div>
+        </div>
+      </div>
+    </div>`).join(''):'<div style="font-family:var(--mono);font-size:11px;color:var(--fg-f);padding:8px 0">No testimonials yet.</div>';
+}
+function addTesti(){_testis.push({quote:'',name:'',role:''});renderTestiList(_testis)}
+function removeTesti(i){_testis.splice(i,1);renderTestiList(_testis)}
+function updateTesti(i,k,v){if(_testis[i])_testis[i][k]=v}
+function getTestis(){return _testis}
+
+// ── Tool Stack ──────────────────────────────────
+let _tools=[];
+const SIMPLE_ICONS_BASE='https://cdn.simpleicons.org/';
+const TOOL_SLUG_MAP={'Adobe Photoshop':'adobephotoshop','Adobe Illustrator':'adobeillustrator','Adobe XD':'adobexd','Adobe InDesign':'adobeindesign','Adobe After Effects':'adobeaftereffects','Adobe Premiere':'adobepremierepro','VS Code':'visualstudiocode','Google Drive':'googledrive','Google Analytics':'googleanalytics','Apple Music':'applemusic'};
+function toolSlug(name){return TOOL_SLUG_MAP[name]||(name.toLowerCase().replace(/[^a-z0-9]/g,''))}
+function renderToolsList(arr){
+  _tools=[...arr];
+  document.getElementById('tools-list').innerHTML=arr.map((t,i)=>`
+    <div class="tag" style="gap:6px">
+      <img src="${SIMPLE_ICONS_BASE}${toolSlug(t)}/white" style="width:14px;height:14px;object-fit:contain" onerror="this.style.display='none'"/>
+      ${t}<span onclick="removeTool(${i})">✕</span>
+    </div>`).join('');
+}
+function addTool(){
+  const inp=document.getElementById('tool-new');const v=inp.value.trim();if(!v)return;
+  _tools.push(v);renderToolsList(_tools);inp.value='';
+}
+function removeTool(i){_tools.splice(i,1);renderToolsList(_tools)}
+
+// ── Jams ────────────────────────────────────────
+let _jamsExtra=[];
+function renderJamsExtraList(arr){
+  _jamsExtra=[...arr];
+  document.getElementById('jams-extra-list').innerHTML=arr.map((j,i)=>`
+    <div style="display:flex;gap:8px;margin-bottom:6px;align-items:center">
+      <input class="fi" value="${j.label||''}" placeholder="Label" style="max-width:140px" oninput="_jamsExtra[${i}].label=this.value"/>
+      <input class="fi" value="${j.url||''}" placeholder="URL" style="flex:1" oninput="_jamsExtra[${i}].url=this.value"/>
+      <button class="btn btn-d btn-ico btn-sm" onclick="removeJamExtra(${i})">✕</button>
+    </div>`).join('');
+}
+function addJamExtra(){_jamsExtra.push({label:'',url:''});renderJamsExtraList(_jamsExtra)}
+function removeJamExtra(i){_jamsExtra.splice(i,1);renderJamsExtraList(_jamsExtra)}
+
+// ── Save Overview ────────────────────────────────
+function saveOverview(){
+  if(!D.meta.overview)D.meta.overview={};
+  const ov=D.meta.overview;
+  ov.headline=document.getElementById('ov-headline').value.trim();
+  ov.sub=document.getElementById('ov-sub').value.trim();
+  ov.cta1Label=document.getElementById('ov-cta1-label').value.trim();
+  ov.cta1Url=document.getElementById('ov-cta1-url').value.trim();
+  ov.cta2Label=document.getElementById('ov-cta2-label').value.trim();
+  ov.cta2Url=document.getElementById('ov-cta2-url').value.trim();
+  ov.philosophy=getPhilArr();
+  ov.brands=getBrandsArr();
+  ov.logos=_logos;
+  ov.bio=getOvBioArr();
+  // Save testimonials and toolStack at D.meta level
+  D.meta.testimonials=JSON.parse(JSON.stringify(_testis));
+  D.meta.toolStack=(_tools&&_tools.length)?_tools:D.meta.toolStack;
+  const ok=gsSave(D);
+  if(!ok){
+    toast('Save failed — storage full. Remove uploaded images.','err');
+    return;
+  }
+  const fr=document.getElementById('ov-preview-frame');
+  if(fr){fr.src='';setTimeout(()=>fr.src='/overview',300)}
+  toast('Overview saved ✓');
+}
+
+// ── SOCIAL PREVIEW ────────────────────────────
+function loadSocialPage(){
+  // Instagram
+  const igUser=D.meta.instagramUser||'';
+  if(document.getElementById('ig-user'))document.getElementById('ig-user').value=igUser;
+  if(igUser)loadInstagram();
+  // Spotify from music settings
+  const spUrl=D.meta.spotifyUrl||'';
+  const spSec=document.getElementById('sp-social-embed');
+  if(spSec){
+    const id=spUrl.match(/track\/([a-zA-Z0-9]+)/)?.[1];
+    if(id){
+      spSec.innerHTML=`<iframe src="https://open.spotify.com/embed/track/${id}?utm_source=generator" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius:8px"></iframe>`;
+    } else {
+      spSec.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--fg-f)">No Spotify track set. Go to Music settings to add one.</div>';
+    }
+  }
+  // Playlist url
+  const plUrl=D.meta.spotifyPlaylistUrl||'';
+  if(document.getElementById('sp-playlist-url'))document.getElementById('sp-playlist-url').value=plUrl;
+  if(plUrl)loadSpPlaylist();
+}
+function loadInstagram(){
+  const user=document.getElementById('ig-user').value.trim();
+  D.meta.instagramUser=user;gsSave(D);
+  const wrap=document.getElementById('ig-embed-wrap');
+  const ph=document.getElementById('ig-placeholder');
+  if(!user){if(ph)ph.style.display='flex';return}
+  if(ph)ph.style.display='none';
+  // Instagram blocks direct iframe — show a styled link card instead
+  wrap.innerHTML=`
+    <div style="padding:20px;width:100%;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+      <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;font-size:26px">📷</div>
+      <div>
+        <div style="font-weight:700;font-size:15px;margin-bottom:4px">@${user}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--fg-m)">Instagram doesn't allow embedding — click to open profile</div>
+      </div>
+      <a href="https://instagram.com/${user}" target="_blank" rel="noopener"
+         style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;border-radius:8px;text-decoration:none;font-family:var(--mono);font-size:11px;font-weight:500">
+        Open @${user} on Instagram ↗
+      </a>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--fg-f);max-width:320px;line-height:1.6">
+        Tip: Use a service like <strong>Beacons.ai</strong> or <strong>Linktree</strong> and paste their embed code below to show a live feed widget.
+      </div>
+    </div>`;
+}
+function applyIgEmbed(){
+  const html=document.getElementById('ig-custom-html').value.trim();
+  const wrap=document.getElementById('ig-embed-wrap');
+  if(!html){toast('Paste embed code or HTML first');return}
+  const ph=document.getElementById('ig-placeholder');
+  if(ph)ph.style.display='none';
+  // If it's a URL, wrap in iframe
+  if(html.startsWith('http')){
+    wrap.innerHTML=`<iframe src="${html}" width="100%" height="480" frameborder="0" style="border:none;display:block"></iframe>`;
+  } else {
+    wrap.innerHTML=html;
+  }
+  toast('Embed applied');
+}
+function loadSpPlaylist(){
+  const url=document.getElementById('sp-playlist-url').value.trim();
+  D.meta.spotifyPlaylistUrl=url;gsSave(D);
+  const wrap=document.getElementById('sp-playlist-embed');
+  if(!url){wrap.innerHTML='';return}
+  // Extract playlist id
+  const id=url.match(/playlist\/([a-zA-Z0-9]+)/)?.[1];
+  const albumId=url.match(/album\/([a-zA-Z0-9]+)/)?.[1];
+  const artistId=url.match(/artist\/([a-zA-Z0-9]+)/)?.[1];
+  const eid=id||albumId||artistId;
+  const etype=id?'playlist':albumId?'album':'artist';
+  if(eid){
+    wrap.innerHTML=`<iframe src="https://open.spotify.com/embed/${etype}/${eid}?utm_source=generator" width="100%" height="352" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius:8px"></iframe>`;
+  } else {
+    toast('Unrecognised Spotify URL');
+  }
+}
+
+// ── Override nav to load new pages ────────────
+const _origNav=nav;
+nav=function(page,el){
+  _origNav(page,el);
+  if(page==='overview-ed')loadOverviewPage();
+  if(page==='social')loadSocialPage();
+  if(page==='testimonials')loadTestimonials();
+  if(page==='client-logos')loadClientLogos();
+  if(page==='toolstack')loadToolStack();
+  if(page==='jams')loadJams();
+  if(page==='reset')updateStorageMeter();
+};
+
+
+// ── TESTIMONIALS (dedicated page) ──────────────────────────────
+function loadTestimonials(){
+  if(!D.meta.testimonials)D.meta.testimonials=[];
+  _testis=JSON.parse(JSON.stringify(D.meta.testimonials));
+  renderTestiList(_testis);
+}
+function addTestimonial(){
+  _testis.push({name:'',role:'',quote:''});renderTestiList(_testis);
+}
+function removeTestimonial(i){
+  _testis.splice(i,1);renderTestiList(_testis);
+}
+function saveTestimonials(){
+  D.meta.testimonials=JSON.parse(JSON.stringify(_testis));
+  gsSave(D);toast('Testimonials saved ✓');
+}
+
+// ── CLIENT LOGOS ──────────────────────────────
+let clientLogos=[];
+function loadClientLogos(){
+  clientLogos=JSON.parse(JSON.stringify(D.meta.clientLogos||[]));
+  renderLogoGrid();
+  // Setup upload zone
+  const lf=document.getElementById('logo-files');
+  const lz=document.getElementById('logo-upzone');
+  if(lz._init)return; lz._init=true;
+  lz.addEventListener('click',()=>lf.click());
+  lf.addEventListener('change',e=>{handleLogoFiles(Array.from(e.target.files));lf.value=''});
+  ['dragover','dragleave','drop'].forEach(ev=>lz.addEventListener(ev,e=>{
+    e.preventDefault();
+    if(ev==='drop')handleLogoFiles(Array.from(e.dataTransfer.files));
+    lz.classList.toggle('over',ev==='dragover');
+  }));
+}
+function handleLogoFiles(files){
+  files.forEach(f=>{
+    if(!f.type.startsWith('image/'))return;
+    const r=new FileReader();
+    r.onload=ev=>{clientLogos.push({id:'l'+Date.now(),url:ev.target.result,name:f.name.replace(/\.[^.]+$/,'')});renderLogoGrid();toast(f.name+' added')};
+    r.readAsDataURL(f);
+  });
+}
+function addLogoUrl(){
+  const url=document.getElementById('logo-url-inp').value.trim();
+  const name=document.getElementById('logo-name-inp').value.trim();
+  if(!url)return;
+  clientLogos.push({id:'l'+Date.now(),url,name:name||'Logo'});
+  renderLogoGrid();
+  document.getElementById('logo-url-inp').value='';
+  document.getElementById('logo-name-inp').value='';
+}
+function renderLogoGrid(){
+  const g=document.getElementById('logo-grid');
+  if(!g)return;
+  g.innerHTML=clientLogos.map((l,i)=>`
+    <div class="mcard">
+      <img class="mthumb" src="${l.url}" alt="${l.name}" style="object-fit:contain;background:#fff;padding:8px"/>
+      <div class="mcard-acts">
+        <input class="mlabel" value="${l.name||''}" placeholder="Name..." oninput="clientLogos[${i}].name=this.value" style="flex:1"/>
+        <button class="btn btn-d btn-ico btn-sm" onclick="clientLogos.splice(${i},1);renderLogoGrid()">✕</button>
+      </div>
+    </div>`).join('') || '<p style="font-family:var(--mono);font-size:11px;color:var(--fg-f);padding:4px 0">No logos yet.</p>';
+}
+function saveLogos(){D.meta.clientLogos=clientLogos;gsSave(D);toast('Logos saved ✓')}
+
+// ── TOOL STACK ────────────────────────────────
+function loadToolStack(){
+  const tools=D.meta.toolStack||['Figma','Adobe Creative Suite','Framer','Webflow','ProtoPie','Principle','InVision','Zeplin','Maze','Hotjar','Google Analytics (GA4)','Optimal Workshop','Jira','Confluence','Notion','ClickUp','Midjourney','Runway ML','Stable Diffusion','Uizard','Final Cut Pro','Canva','Git / GitHub','Vercel','Cursor','HTML/CSS (Working Knowledge)','React (Basic Understanding)','Tailwind CSS'];
+  renderToolsList(tools);
+}
+function renderToolsList(arr){
+  const w=document.getElementById('tools-list');
+  const sMap={'figma':'figma','adobe creative suite':'adobecreativecloud','adobe creative cloud':'adobecreativecloud','adobe illustrator':'adobeillustrator','adobe photoshop':'adobephotoshop','adobe after effects':'adobeaftereffects','adobe premiere pro':'adobepremierepro','adobe xd':'adobexd','framer':'framer','webflow':'webflow','protopie':'protopie','principle':'principle','invision':'invision','zeplin':'zeplin','maze':'maze','hotjar':'hotjar','google analytics':'googleanalytics','google analytics (ga4)':'googleanalytics','optimal workshop':'optimalworkshop','jira':'jira','confluence':'confluence','notion':'notion','clickup':'clickup','midjourney':'midjourney','runway ml':'runwayml','stable diffusion':'stablediffusion','uizard':'uizard','final cut pro':'finalcutpro','canva':'canva','git':'git','github':'github','git / github':'github','vercel':'vercel','cursor':'cursor','html/css (working knowledge)':'html5','html/css':'html5','react':'react','react (basic understanding)':'react','tailwind css':'tailwindcss','vs code':'visualstudiocode','vscode':'visualstudiocode','chatgpt':'openai','miro':'miro','slack':'slack','spline':'spline','airtable':'airtable'};
+  w.innerHTML=arr.map((t,i)=>{
+    const slug=sMap[t.toLowerCase().trim()]||(t.toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,''));
+    return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <img src="https://cdn.simpleicons.org/${slug}" 
+           onerror="this.style.display='none'" style="width:18px;height:18px;filter:invert(1)" alt=""/>
+      <input class="fi" value="${t.replace(/"/g,'&quot;')}" oninput="updateTool(${i},this.value)" style="flex:1"/>
+      <button class="btn btn-d btn-ico btn-sm" onclick="removeTool(${i})">✕</button>
+    </div>`;}).join('');
+  if(!D.meta.toolStack)D.meta.toolStack=arr;
+}
+function getToolsArr(){return Array.from(document.getElementById('tools-list').querySelectorAll('input')).map(i=>i.value.trim()).filter(Boolean)}
+function addTool(){const v=document.getElementById('tool-new').value.trim();if(!v)return;if(!D.meta.toolStack)D.meta.toolStack=[];D.meta.toolStack.push(v);renderToolsList(D.meta.toolStack);document.getElementById('tool-new').value=''}
+function removeTool(i){if(!D.meta.toolStack)return;D.meta.toolStack.splice(i,1);renderToolsList(D.meta.toolStack)}
+function updateTool(i,v){if(D.meta.toolStack)D.meta.toolStack[i]=v}
+function saveTools(){D.meta.toolStack=getToolsArr();gsSave(D);toast('Tool stack saved ✓')}
+
+// ── FAVOURITE JAMS ────────────────────────────
+function loadJams(){
+  const jams=D.meta.jams||{};
+  document.getElementById('jam-sp-url').value=jams.spotifyUrl||'';
+  document.getElementById('jam-am-url').value=jams.appleUrl||'';
+  updateJamPreviews();
+  renderJamsExtra(jams.extra||[]);
+  document.getElementById('jam-sp-url').addEventListener('input',updateJamPreviews);
+  document.getElementById('jam-am-url').addEventListener('input',updateJamPreviews);
+}
+function updateJamPreviews(){
+  const spUrl=document.getElementById('jam-sp-url').value.trim();
+  const amUrl=document.getElementById('jam-am-url').value.trim();
+  const spPrev=document.getElementById('jam-sp-preview');
+  const amPrev=document.getElementById('jam-am-preview');
+  if(spUrl){
+    const trk=spUrl.match(/track\/([a-zA-Z0-9]+)/)?.[1];
+    const pl=spUrl.match(/playlist\/([a-zA-Z0-9]+)/)?.[1];
+    const eid=trk||pl; const etype=trk?'track':'playlist';
+    if(eid) spPrev.innerHTML=`<iframe src="https://open.spotify.com/embed/${etype}/${eid}?utm_source=generator" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style="border-radius:8px"></iframe>`;
+    else spPrev.innerHTML='<span style="font-family:var(--mono);font-size:11px;color:var(--fg-m)">⚠ Paste a Spotify track or playlist URL</span>';
+  } else spPrev.innerHTML='';
+  if(amUrl){
+    amPrev.innerHTML=`<iframe allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write" frameborder="0" height="175" style="width:100%;overflow:hidden;border-radius:8px;background:transparent" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" src="${amUrl}"></iframe>`;
+  } else amPrev.innerHTML='';
+}
+function renderJamsExtra(arr){
+  document.getElementById('jams-extra-list').innerHTML=arr.map((j,i)=>`
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+      <input class="fi" value="${(j.label||'').replace(/"/g,'&quot;')}" placeholder="Label..." oninput="updateJamExtra(${i},'label',this.value)" style="max-width:140px"/>
+      <input class="fi" value="${(j.url||'').replace(/"/g,'&quot;')}" placeholder="URL..." oninput="updateJamExtra(${i},'url',this.value)" style="flex:1"/>
+      <button class="btn btn-d btn-ico btn-sm" onclick="removeJamExtra(${i})">✕</button>
+    </div>`).join('') || '<p style="font-family:var(--mono);font-size:11px;color:var(--fg-f)">No extra links.</p>';
+}
+function getJamsExtraArr(){
+  const rows=document.getElementById('jams-extra-list').querySelectorAll('div[style]');
+  const arr=[];
+  rows.forEach(r=>{const inps=r.querySelectorAll('input');if(inps.length>=2)arr.push({label:inps[0].value.trim(),url:inps[1].value.trim()})});
+  return arr;
+}
+function addJamItem(){if(!D.meta.jams)D.meta.jams={};if(!D.meta.jams.extra)D.meta.jams.extra=[];D.meta.jams.extra.push({label:'',url:''});renderJamsExtra(D.meta.jams.extra)}
+function removeJamExtra(i){if(D.meta.jams&&D.meta.jams.extra)D.meta.jams.extra.splice(i,1);renderJamsExtra(D.meta.jams&&D.meta.jams.extra||[])}
+function updateJamExtra(i,key,val){if(D.meta.jams&&D.meta.jams.extra&&D.meta.jams.extra[i])D.meta.jams.extra[i][key]=val}
+function saveJams(){
+  if(!D.meta.jams)D.meta.jams={};
+  D.meta.jams.spotifyUrl=document.getElementById('jam-sp-url').value.trim();
+  D.meta.jams.appleUrl=document.getElementById('jam-am-url').value.trim();
+  D.meta.jams.extra=getJamsExtraArr();
+  gsSave(D);toast('Jams saved ✓');
+}
+
+// ── PWA service worker ─────────────────────────
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('admin-sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
