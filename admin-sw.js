@@ -1,7 +1,7 @@
 // GS Admin Service Worker — v1
 // Caches admin.html for offline use on Android PWA
 
-const CACHE = 'gs-admin-v1';
+const CACHE = 'gs-admin-v2';
 const ASSETS = [
   './admin.html',
   './admin-manifest.json',
