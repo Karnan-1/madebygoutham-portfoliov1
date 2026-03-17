@@ -659,6 +659,7 @@
           <div id="storage-meter" style="margin-bottom:12px"></div>
           <p style="font-family:var(--mono);font-size:10px;color:var(--fg-m);line-height:1.6">If storage is full, remove uploaded images from projects and use image URLs (Imgur, Cloudinary, etc.) instead.</p>
         </div>
+        <div class="card" style="max-width:420px;border-color:var(--acc)"><div class="ctitle" style="color:var(--acc)">☁ Publish to Site</div><div class="psub" style="margin-bottom:14px">Push your CMS data live so all browsers see your updates. Requires a GitHub Personal Access Token with <strong>repo</strong> scope — <a href="https://github.com/settings/tokens/new?scopes=repo&description=Portfolio+CMS" target="_blank" style="color:var(--acc)">create one here</a>.</div><div class="fg"><label class="fl">GitHub Token</label><input class="fi" type="password" id="gh-token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" oninput="localStorage.setItem('gs_gh_token',this.value)"></div><button class="btn btn-p" id="publish-btn" onclick="publishToSite()" style="margin-top:10px;width:100%">PUBLISH TO SITE</button></div>
         <div class="card" style="max-width:420px;border-color:rgba(224,80,80,.3)">
           <div class="ctitle" style="color:var(--red)">⚠ Danger Zone</div>
           <p style="font-size:13px;color:var(--fg-m);margin-bottom:18px;line-height:1.7">Resetting will permanently delete all your customizations including media URLs, projects, bio, and music settings. Cannot be undone.</p>
@@ -1694,7 +1695,8 @@ function updateStorageMeter(){
     <div style="height:6px;background:var(--border);border-radius:99px;overflow:hidden">
       <div style="height:100%;width:${pct}%;background:${color};border-radius:99px;transition:width .4s"></div>
     </div>`;
-}
+const ghInp=document.getElementById('gh-token-input');if(ghInp){const t=localStorage.getItem('gs_gh_token');if(t)ghInp.value=t;}
+  }
 
 // ── OVERVIEW PAGE EDITOR ──────────────────────
 function loadOverviewPage(){
@@ -2097,6 +2099,7 @@ function saveJams(){
 }
   function exportPortfolioData(){const d=localStorage.getItem('gs_portfolio_data');if(!d){alert('No data found');return;}const b=new Blob([d],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='portfolio-data.json';a.click();}
 
+  async function publishToSite(){const T=localStorage.getItem('gs_gh_token');if(!T){toast('⚠ Add GitHub token in Reset Data > Publish Settings.');return;}const d=localStorage.getItem('gs_portfolio_data');if(!d){toast('No data.');return;}const btn=document.getElementById('publish-btn');if(btn){btn.disabled=true;btn.textContent='Publishing...';}try{let sha='';const chk=await fetch('https://api.github.com/repos/Karnan-1/madebygoutham-portfoliov1/contents/portfolio-data.json',{headers:{'Authorization':'token '+T}});if(chk.ok){sha=(await chk.json()).sha||'';}const content=btoa(unescape(encodeURIComponent(d)));const payload={message:'chore: publish portfolio data',content};if(sha)payload.sha=sha;const res=await fetch('https://api.github.com/repos/Karnan-1/madebygoutham-portfoliov1/contents/portfolio-data.json',{method:'PUT',headers:{'Authorization':'token '+T,'Content-Type':'application/json'},body:JSON.stringify(payload)});if(res.ok){toast('✓ Published! Site updates in ~30s.');}else{const e=await res.json();toast('Error: '+(e.message||'Failed'));}}catch(e){toast('Error: '+e.message);}if(btn){btn.disabled=false;btn.textContent='PUBLISH TO SITE';}}
 // ── PWA service worker ─────────────────────────
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('admin-sw.js').catch(()=>{});
