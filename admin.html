@@ -2095,6 +2095,7 @@ function saveJams(){
   D.meta.jams.extra=getJamsExtraArr();
   gsSave(D);toast('Jams saved ✓');
 }
+  function exportPortfolioData(){const d=localStorage.getItem('gs_portfolio_data');if(!d){alert('No data found');return;}const b=new Blob([d],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='portfolio-data.json';a.click();}
 
 // ── PWA service worker ─────────────────────────
 if('serviceWorker' in navigator){
