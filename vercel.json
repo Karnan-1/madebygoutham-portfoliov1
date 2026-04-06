@@ -30,5 +30,11 @@
   "rewrites": [
     { "source": "/portfolio", "destination": "/index.html" },
     { "source": "/", "destination": "/index.html" }
-  ]
+  ],
+  "functions": {
+    "api/submit-brief.js": {
+      "memory": 128,
+      "maxDuration": 10
+    }
+  }
 }

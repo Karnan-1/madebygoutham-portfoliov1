@@ -1,0 +1,8 @@
+{
+  "name": "brief-api",
+  "version": "1.0.0",
+  "description": "Serverless API for brand brief email notifications",
+  "dependencies": {
+    "nodemailer": "^6.9.13"
+  }
+}
