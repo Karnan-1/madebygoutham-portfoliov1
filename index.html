@@ -290,7 +290,7 @@
   <div class="nav-r">
     <a href="#" class="active">Feed</a>
     <a href="overview.html">Overview</a>
-    <a href="#" onclick="scrollToContact(event)">Contact</a>
+    <a href="#" onclick="window.location.href='/brief'(event)">Contact</a>
     <div class="dm-btn" id="dm-btn" onclick="toggleDark()">☀</div>
   </div>
 </div>
@@ -753,7 +753,7 @@ function switchTab(id,el){
   document.getElementById('panel-'+id).classList.add('active');
   document.getElementById('right').scrollTop=0;
 }
-function scrollToContact(e){e.preventDefault();document.getElementById('l-contact').scrollIntoView({behavior:'smooth'})}
+function window.location.href='/brief'(e){e.preventDefault();document.getElementById('l-contact').scrollIntoView({behavior:'smooth'})}
 
 // ── Divider — clamped to 320px–52% ────────────
 const leftEl=document.getElementById('left'),divEl=document.getElementById('div');
