@@ -295,8 +295,8 @@
       if (document.getElementById('dm-btn') || document.getElementById('lang-switcher')) {
         injectSwitcher();
         applyLang(detectLang());
-      } else if (tries++ < 50) {
-        requestAnimationFrame(tryInject);
+      } else if (tries++ < 100) {
+        ;
       }
     }
     tryInject();
