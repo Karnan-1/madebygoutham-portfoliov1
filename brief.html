@@ -33,6 +33,7 @@
     .nav-r{display:flex;align-items:center;gap:10px}
     .nav-r a{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-m);text-decoration:none;padding:5px 9px;border-radius:3px;transition:color .2s,background .2s}
     .nav-r a:hover{color:var(--fg);background:rgba(128,128,128,.1)}
+          .nav-r a.nav-brief{background:var(--fg);color:var(--bg);font-weight:700;padding:4px 12px;border-radius:4px;letter-spacing:.06em}
     .dm-btn{width:28px;height:28px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;background:transparent;transition:background .2s;line-height:1;user-select:none}
     .dm-btn:hover{background:rgba(128,128,128,.1)}
 
@@ -131,7 +132,9 @@
 <nav>
   <a href="/" class="nav-logo">Goutham Shibulal</a>
   <div class="nav-r">
-    <a href="/">← Back</a>
+          <a href="/">Feed</a>
+                <a href="/overview">Overview</a>
+                      <a href="/brief" class="nav-brief active">Brief</a>
     <div class="dm-btn" id="dm-btn" onclick="toggleDark()">☀</div>
   </div>
 </nav>

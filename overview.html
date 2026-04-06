@@ -23,6 +23,7 @@
     .nav-links{display:flex;align-items:center;gap:2px}
     .nav-links a{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-m);text-decoration:none;padding:5px 9px;border-radius:3px;transition:color .2s,background .2s}
     .nav-links a:hover,.nav-links a.active{color:var(--fg);background:rgba(128,128,128,.1)}
+          .nav-links a.nav-brief{background:var(--fg);color:var(--bg);font-weight:700;padding:4px 12px;border-radius:4px;letter-spacing:.06em}
     .dm-btn{width:28px;height:28px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;background:transparent;margin-left:4px;transition:background .2s;user-select:none}
     .dm-btn:hover{background:rgba(128,128,128,.1)}
     .page-wrap{max-width:1080px;margin:0 auto;padding:0 32px 100px}
@@ -111,6 +112,7 @@
   <div class="nav-links">
     <a href="/">Feed</a>
     <a href="/overview" class="active">Overview</a>
+          <a href="/brief" class="nav-brief">Brief</a>
     <div class="dm-btn" id="dm-btn" onclick="toggleDark()">☀</div>
   </div>
 </nav>

@@ -46,6 +46,7 @@
     .nav-r{display:flex;align-items:center;justify-content:flex-end;padding:0 14px;gap:2px}
     .nav-r a{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-m);text-decoration:none;padding:5px 9px;border-radius:3px;transition:color .2s,background .2s}
     .nav-r a:hover,.nav-r a.active{color:var(--fg);background:rgba(128,128,128,.1)}
+          .nav-r a.nav-brief{background:var(--fg);color:var(--bg);font-weight:700;padding:4px 12px;border-radius:4px;letter-spacing:.06em}
     .nav-gap{border-left:1px solid var(--line)}
     .dm-btn{width:28px;height:28px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;background:transparent;flex-shrink:0;margin-left:4px;transition:background .2s;line-height:1;user-select:none}
     .dm-btn:hover{background:rgba(128,128,128,.1)}
@@ -290,7 +291,7 @@
   <div class="nav-r">
     <a href="#" class="active">Feed</a>
     <a href="overview.html">Overview</a>
-    <a href="#" onclick="window.location.href='/brief'">Contact</a>
+              <a href="/brief" class="nav-brief">Brief</a>
     <div class="dm-btn" id="dm-btn" onclick="toggleDark()">☀</div>
   </div>
 </div>
