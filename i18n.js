@@ -244,7 +244,7 @@
   }
 
   function injectSwitcher() {
-    const navR = document.querySelector('.nav-r') || document.querySelector('.nav-links');
+    const navR = document.querySelector('#nav');
     if (!navR || document.getElementById('lang-switcher')) return;
 
     const current = detectLang();
