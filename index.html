@@ -278,6 +278,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+  <script src="i18n.js"></script>
 </head>
 <body>
 <div id="cur"></div><div id="cur-r"></div>
@@ -289,9 +290,9 @@
   <div class="nav-l" id="nav-logo"></div>
   <div class="nav-gap"></div>
   <div class="nav-r">
-    <a href="#" class="active">Feed</a>
-    <a href="overview.html">Overview</a>
-              <a href="/brief" class="nav-brief">Brief</a>
+    <a href="#" class="active" data-i18n="nav.feed">Feed</a>
+    <a href="overview.html" data-i18n="nav.overview">Overview</a>
+              <a href="/brief" class="nav-brief" data-i18n="nav.brief">Brief</a>
     <div class="dm-btn" id="dm-btn" onclick="toggleDark()">☀</div>
   </div>
 </div>
@@ -305,14 +306,14 @@
         <div class="l-role" id="l-role"></div>
       </div>
       <div class="l-bio" id="l-bio"></div>
-      <div class="l-sec">Disciplines</div>
+      <div class="l-sec" data-i18n="left.disciplines">Disciplines</div>
       <div class="pills" id="l-pills"></div>
-      <div class="l-sec">Experience</div>
+      <div class="l-sec" data-i18n="left.experience">Experience</div>
       <div id="l-exp"></div>
-      <div class="l-sec" style="margin-top:4px">Recognition</div>
+      <div class="l-sec" style="margin-top:4px" data-i18n="left.recognition">Recognition</div>
       <div id="l-awards"></div>
       <div class="contact-blk" id="l-contact">
-        <div class="l-sec">Contact</div>
+        <div class="l-sec" data-i18n="left.contact">Contact</div>
         <div id="contact-rows"></div>
       </div>
     </div>
@@ -601,7 +602,7 @@ function renderMobile(m){
   // Skills (rendered later in mob-skills element, after projects)
   const skillsEl=document.getElementById('mob-skills');
   if(skillsEl)skillsEl.innerHTML=`
-    <div class="mob-skills-label">Disciplines</div>
+    <div class="mob-skills-label" data-i18n="left.disciplines">Disciplines</div>
     <div class="mob-pills-wrap">${D.skills.map(s=>`<div class="mob-pill">${s}</div>`).join('')}</div>`;
 
   // Category tabs
@@ -646,7 +647,7 @@ function renderMobile(m){
 
   // Contact footer — last section
   document.getElementById('mob-contact-footer').innerHTML=`
-    <div class="mob-contact-footer-label">Contact</div>
+    <div class="mob-contact-footer-label" data-i18n="left.contact">Contact</div>
     <a href="mailto:${m.email}" class="mob-cf-row"><div class="mob-cf-icon">✉</div><span style="word-break:break-all">${m.email}</span></a>
     <a href="${m.linkedin}" target="_blank" rel="noopener" class="mob-cf-row"><div class="mob-cf-icon" style="font-family:var(--sans);font-size:10px;font-weight:700">in</div>${m.linkedin.replace('https://','')}</a>
     <a href="tel:${m.phone.replace(/\s/g,'')}" class="mob-cf-row"><div class="mob-cf-icon">☎</div>${m.phone}</a>
