@@ -196,23 +196,21 @@
     return langData[key] !== undefined ? langData[key] : (T[FALLBACK][key] || key);
   }
 
-  function applyLang(lang) {
+  function applyLang(lang, silent = false) {
     if (!SUPPORTED.includes(lang)) lang = FALLBACK;
     const root = T[lang] ? lang : FALLBACK;
     document.documentElement.lang = lang;
-    
+
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
       const val = t(key, root);
       if (val !== key) el.textContent = val;
     });
-
     document.querySelectorAll('[data-i18n-html]').forEach(el => {
       const key = el.getAttribute('data-i18n-html');
       const val = t(key, root);
       if (val !== key) el.innerHTML = val;
     });
-
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
       const key = el.getAttribute('data-i18n-placeholder');
       const val = t(key, root);
@@ -220,71 +218,65 @@
     });
 
     if (window.location.pathname.includes('overview')) {
-        document.title = t('ov.hero.tag', root) + ' — Goutham Shibulal';
+      document.title = t('ov.hero.tag', root) + ' — Goutham Shibulal';
     } else if (window.location.pathname.includes('brief')) {
-        document.title = 'Brand Brief — Goutham Shibulal';
+      document.title = 'Brand Brief — Goutham Shibulal';
     }
 
-    const lbl = document.getElementById('progress-label');
-    if (lbl && window.currentStep) {
-      lbl.textContent = t('br.progress', root).replace('{n}', window.currentStep);
-    }
-    
     const badge = document.getElementById('lang-badge');
     if (badge) badge.textContent = lang.toUpperCase();
-    
+
     window.__speechLang = SPEECH_LANGS[lang] || 'en-US';
     localStorage.setItem(LS_KEY, lang);
     window.__currentLang = lang;
-    
+
     const dd = document.getElementById('lang-dd');
     if (dd) dd.style.display = 'none';
-
-    window.dispatchEvent(new CustomEvent('langChanged', { detail: lang }));
+    if (!silent) window.dispatchEvent(new CustomEvent('langChanged', { detail: lang }));
   }
 
   function injectSwitcher() {
     const navR = document.querySelector('.nav-r') || document.querySelector('.nav-links');
     if (!navR || document.getElementById('lang-switcher')) return;
-    
+
     const current = detectLang();
     const wrapper = document.createElement('div');
     wrapper.id = 'lang-switcher';
     wrapper.style.cssText = 'position:relative;display:inline-flex;align-items:center';
-    
+
     const btn = document.createElement('button');
     btn.className = 'dm-btn';
     btn.style.cssText = 'font-family:var(--mono);font-size:9px;letter-spacing:.06em;width:34px;font-weight:600;cursor:pointer;margin-left:8px';
     btn.innerHTML = `<span id="lang-badge">${current.toUpperCase()}</span>`;
-    
+
     const dd = document.createElement('div');
     dd.id = 'lang-dd';
     dd.style.cssText = 'display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:5px;min-width:140px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.12)';
-    
+
     const LANGS = [
       { code: 'en', label: '🇬🇧 English' },
       { code: 'it', label: '🇮🇹 Italiano' }
     ];
-    
+
     LANGS.forEach(l => {
       const item = document.createElement('button');
       item.textContent = l.label;
       item.style.cssText = 'display:block;width:100%;text-align:left;padding:8px 10px;font-family:var(--mono);font-size:10px;background:transparent;border:none;color:var(--fg);cursor:pointer;border-radius:6px';
       item.onclick = (e) => { e.stopPropagation(); applyLang(l.code); };
       dd.appendChild(item);
-    });
-    
+   });
+
     btn.onclick = (e) => { e.stopPropagation(); dd.style.display = dd.style.display === 'none' ? 'block' : 'none'; };
     document.addEventListener('click', () => { if (dd) dd.style.display = 'none'; });
-    
-    wrapper.appendChild(btn); 
+
+    wrapper.appendChild(btn);
     wrapper.appendChild(dd);
-    
+
     const dmBtn = document.getElementById('dm-btn') || document.getElementById('dm-btn-mob');
     if (dmBtn) {
-        dmBtn.parentNode.insertBefore(wrapper, dmBtn);
+      dmBtn.parentNode.insertBefore(wrapper, dmBtn);
     } else {
-        navR.appendChild(wrapper);
+      navR.appendChild(wrapper);
     }
   }
 
@@ -296,5 +288,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 
-  window.i18n = { setLang: applyLang, getLang: detectLang, t };
+  window.i18n = { setLang: applyLang, getLang: detectLang, t, applyLang };
 })();
