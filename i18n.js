@@ -245,6 +245,7 @@
 
   function injectSwitcher() {
     const navR = document.querySelector('#nav');
+    const _ob = document.getElementById('lang-btn'); if (_ob) _ob.remove();
     if (!navR || document.getElementById('lang-switcher')) return;
 
     const current = detectLang();
