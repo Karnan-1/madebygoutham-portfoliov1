@@ -296,7 +296,7 @@
         injectSwitcher();
         applyLang(detectLang());
       } else if (tries++ < 100) {
-        ;
+                  setTimeout(tryInject, 200);
       }
     }
     tryInject();
